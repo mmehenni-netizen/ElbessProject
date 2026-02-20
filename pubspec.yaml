@@ -31,7 +31,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
-  svg: ^0.1.0
+  flutter_svg: ^2.2.0
 
 dev_dependencies:
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -68,18 +68,18 @@ flutter:
   fonts:
     - family: bold
       fonts:
-        - asset: fonts/Poppins/Poppins-Bold.ttf
+        - asset: assets/Fonts/Poppins/Poppins-Bold.ttf
 
     - family: semi
       fonts:
-        - asset: fonts/Poppins/Poppins-SemiBold.ttf
+        - asset: assets/Fonts/Poppins/Poppins-SemiBold.ttf
 
     - family: meduim
       fonts:
-        - asset: fonts/Poppins/Poppins-Medium.ttf
+        - asset: assets/Fonts/Poppins/Poppins-Medium.ttf
 
     - family: regular
       fonts:
-        - asset: fonts/Poppins/Poppins-Regular.ttf
+        - asset: assets/Fonts/Poppins/Poppins-Regular.ttf
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
