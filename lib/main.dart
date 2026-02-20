@@ -12,10 +12,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-     
+     debugShowCheckedModeBanner: false,
       home: Text(
-        'Hello World',
-        style: TextStyle(fontSize: 24 ),
+        'Hello elbess',
+        style: TextStyle(fontSize: 24 ), 
       ),
     );
   }
