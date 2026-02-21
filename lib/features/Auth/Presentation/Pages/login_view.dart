@@ -1,4 +1,4 @@
-import 'package:elbess/features/Login_view/Widgets/login_body.dart';
+import 'package:elbess/features/Auth/Widgets/loginbody.dart';
 import 'package:flutter/material.dart';
 
 class LoginView extends StatelessWidget {
@@ -6,9 +6,6 @@ class LoginView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-
-      body: LoginBody(),
-    );
+    return Loginbody();
   }
 }

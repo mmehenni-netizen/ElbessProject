@@ -1,7 +1,7 @@
 
 import 'dart:async';
 
-import 'package:elbess/features/Login_view/Presentation/login_view.dart';
+import 'package:elbess/features/Login_view/Presentation/options_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
@@ -34,7 +34,7 @@ class _SplashbodyState extends State<Splashbody> {
       }
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const LoginView()),
+        MaterialPageRoute(builder: (_) => const OptionsView()),
       );
     });
   }
