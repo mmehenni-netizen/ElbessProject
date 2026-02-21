@@ -2,13 +2,20 @@ import 'package:elbess/core/constants/button.dart';
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/constants/optionsbtn.dart';
 import 'package:elbess/core/utils/size_config.dart';
+import 'package:elbess/features/Auth/Presentation/Pages/login_view.dart';
+import 'package:elbess/features/Auth/Presentation/Pages/signup_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 
-class OptionsBody extends StatelessWidget {
+class OptionsBody extends StatefulWidget {
   const OptionsBody({super.key});
 
+  @override
+  State<OptionsBody> createState() => _OptionsBodyState();
+}
+
+class _OptionsBodyState extends State<OptionsBody> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,14 +65,20 @@ class OptionsBody extends StatelessWidget {
       ),
          Gap(30),
           Padding(padding: EdgeInsets.symmetric(horizontal: 20),
-          child: CustomButton(text: "Log in with password", onPressed: () {}),),
+          child: CustomButton(text: "Log in with password", onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>LoginView()));
+          }),),
 Gap(20),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text("Don't have an account?",style: TextStyle(fontSize: 12,fontFamily: "medium",color: Colors.grey),),
             GestureDetector(
-              onTap: (){},
+              onTap: (){
+                setState(() {
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>SignupView()));
+                });
+              },
               child: Text(" Sign up",style: TextStyle(fontSize: 12,fontFamily: "medium",color: AppColors.primary),))
           
           ],
