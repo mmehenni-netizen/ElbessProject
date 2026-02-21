@@ -19,11 +19,18 @@ class Loginbody extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Gap(16),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: const Icon(Icons.arrow_back_ios_new_outlined, size: 20),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 24,
+                    color: Color(0xFF9A9A9A),
+                  ),
+                ),
               ),
               const Gap(50),
               SizedBox(
@@ -113,10 +120,14 @@ class Loginbody extends StatelessWidget {
           children: [
             Text("Don't have an account? ",style: TextStyle(fontSize: 12,fontFamily: "medium",color: Colors.grey),),
             GestureDetector(
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => SignupView()));
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SignupView()),
+                );
               },
-              child: Text("Sign up",style: TextStyle(fontSize: 12,fontFamily: "semi",color: AppColors.primary),))
+              child: Text("Sign up",style: TextStyle(fontSize: 12,fontFamily: "semi",color: AppColors.primary),),
+            )
 
           ],
         )

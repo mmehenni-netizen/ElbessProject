@@ -1,6 +1,7 @@
 import 'package:elbess/core/constants/button.dart';
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/constants/textfield.dart';
+import 'package:elbess/features/Auth/Presentation/Pages/fill_profile_view.dart';
 import 'package:elbess/features/Auth/Presentation/Pages/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart' show Gap;
@@ -80,15 +81,23 @@ class _SignupbodyState extends State<Signupbody> {
               ),
               const Gap(10),
               CustomTextField(
-                title: "Password",
-                hinttext: "enter your password",
+                title: "Confirm password",
+                hinttext: "confirm your password",
                 prefixIcon: Icons.lock_outline,
                 obscureText: true,
               ),
               const Gap(40),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: CustomButton(text: "Sign up", onPressed: () {  },),
+                child: CustomButton(
+                  text: "Sign up",
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const FillProfileView()),
+                    );
+                  },
+                ),
               ),
               const Gap(40),
               Row(
