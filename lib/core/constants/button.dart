@@ -2,13 +2,14 @@ import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/utils/size_config.dart';
 import 'package:flutter/material.dart';
 class CustomButton extends StatelessWidget {
-  const CustomButton({super.key, required this.text, this.OnTap});
+  const CustomButton({super.key, required this.text, required this.onPressed});
+
   final String text;
-  final VoidCallback? OnTap;
+  final VoidCallback onPressed;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: OnTap,
+      onTap: onPressed,
       child: Container(
          height: 57,
           width: SizeConfig.screenWidth,
