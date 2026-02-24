@@ -20,24 +20,26 @@ class _OptionsBodyState extends State<OptionsBody> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Gap(160),
-              SvgPicture.asset('assets/Images/Logo.svg',height:40),
+              SvgPicture.asset('assets/Images/appLogo/Logo.svg',height:40),
               Gap(40),
               Text("Let’s you in",style: TextStyle(fontSize: 30,fontFamily: "bold"),),
            Gap(30),
-            OptionsBtn(continuee: "Continue with facebook", image: "assets/Images/facebook.png"),
+            OptionsBtn(continuee: "Continue with facebook", image: "assets/Images/socialMediaLogos/facebook.png"),
                   Gap(15),
-                   OptionsBtn(continuee: "Continue with google", image: "assets/Images/google.png"),
+                   OptionsBtn(continuee: "Continue with google", image: "assets/Images/socialMediaLogos/google.png"),
                    Gap(15),
-               OptionsBtn(continuee: "Continue with apple", image: "assets/Images/apple-logo.png"),
+               OptionsBtn(continuee: "Continue with apple", image: "assets/Images/socialMediaLogos/apple-logo.png"),
             Gap(60),
             Row(
           children: [
@@ -86,6 +88,8 @@ class _OptionsBodyState extends State<OptionsBody> {
             ],
           )
             ],
+              ),
+            ),
           ),
         ),
       )
