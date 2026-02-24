@@ -1,5 +1,6 @@
 
 import 'package:elbess/features/Splashview/Presentation/splashview.dart';
+import 'package:elbess/root.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -14,7 +15,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
      debugShowCheckedModeBanner: false,
-      home:  Splashview(),
+      theme: ThemeData(
+        
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      home:  Root(),
     );
   }
 }

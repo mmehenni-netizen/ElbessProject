@@ -86,7 +86,7 @@ class Fillbody extends StatelessWidget {
               FillTextField(hint: "Gender"),
               const Gap(60),
               CustomButton(text: "Continue", onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const Root()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) =>  Root()));
               }),
               const Gap(20),
 
