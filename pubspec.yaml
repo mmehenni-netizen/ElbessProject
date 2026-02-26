@@ -52,6 +52,11 @@ flutter:
     - assets/Images/
     - assets/Images/appLogo/
     - assets/Images/socialMediaLogos/
+    - assets/Images/offers_images/
+    - assets/Images/categories/
+    - assets/Images/stores/
+    - assets/Images/clothes/
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:

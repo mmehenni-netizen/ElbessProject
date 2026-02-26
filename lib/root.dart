@@ -59,8 +59,8 @@ class _RootState extends State<Root> {
         },
       ),
       bottomNavigationBar: Container(
-        margin: EdgeInsets.fromLTRB(12, 0, 12, 12),
-        padding: EdgeInsets.symmetric(horizontal: 1, vertical: 1),
+        margin: EdgeInsets.fromLTRB(13, 0, 16, 16),
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 1),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.centerLeft,
@@ -93,7 +93,7 @@ class _RootState extends State<Root> {
                     duration: Duration(milliseconds: 220),
                     curve: Curves.easeInOut,
                     margin: EdgeInsets.symmetric(horizontal: 4),
-                    padding: EdgeInsets.symmetric(vertical: 10),
+                    padding: EdgeInsets.symmetric(vertical: 5),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
