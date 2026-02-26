@@ -18,8 +18,16 @@ class ItemCard extends StatefulWidget {
 }
 
 class _ItemCardState extends State<ItemCard> {
+  String _normalizedAssetPath(String path) {
+    return path
+        .replaceFirst('assets/images/', 'assets/Images/')
+        .replaceFirst('assets/icons/', 'assets/icons/');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final imagePath = _normalizedAssetPath(widget.imagePath);
+
     return  Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -35,7 +43,15 @@ class _ItemCardState extends State<ItemCard> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(widget.imagePath,height: MediaQuery.of(context).size.height * 0.5,),
+                    child: Image.asset(
+                      imagePath,
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+                        );
+                      },
+                    ),
                 ),
               ),
               Positioned(
