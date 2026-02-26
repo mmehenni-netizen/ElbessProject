@@ -1,6 +1,7 @@
 import 'package:elbess/features/favorites/presentation/favoritesview.dart';
 import 'package:elbess/features/home/presentation/homeview.dart';
 import 'package:elbess/features/cart/presentation/cartview.dart';
+import 'package:elbess/core/utils/size_config.dart';
 
 import 'package:elbess/features/profile/presentation/profileview.dart';
 import 'package:elbess/features/track/presentation/trackview.dart';
@@ -8,16 +9,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Root extends StatefulWidget {
-   Root({super.key});
+  Root({super.key});
 
   @override
   State<Root> createState() => _RootState();
 }
 
 class _RootState extends State<Root> {
-        late PageController pageController;
-        late List<Widget> pages;
-        int currentScreen=0;
+  late PageController pageController;
+  late List<Widget> pages;
+  int currentScreen = 0;
   final List<IconData> _icons = [
     CupertinoIcons.home,
     CupertinoIcons.shopping_cart,
@@ -25,20 +26,26 @@ class _RootState extends State<Root> {
     CupertinoIcons.heart,
     CupertinoIcons.person,
   ];
-  final List<String> _labels = ['Home', 'Cart', 'Track', 'Favorites', 'Profile'];
+  final List<String> _labels = [
+    'Home',
+    'Cart',
+    'Track',
+    'Favorites',
+    'Profile',
+  ];
   @override
-    void initState() {
-      pages = [
-        Homeview(),
-        Cartview(),
-        Trackview(),
-        Favoritesview(),
-        Profileview(),
-      ];
-      pageController = PageController(initialPage: currentScreen);
-      super.initState();
-      
-    }
+  void initState() {
+    pages = [
+      Homeview(),
+      Cartview(),
+      Trackview(),
+      Favoritesview(),
+      Profileview(),
+    ];
+    pageController = PageController(initialPage: currentScreen);
+    super.initState();
+  }
+
   @override
   void dispose() {
     pageController.dispose();
@@ -46,8 +53,10 @@ class _RootState extends State<Root> {
   }
 
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
 
     return Scaffold(
+      extendBody: true,
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: pageController,
@@ -65,10 +74,7 @@ class _RootState extends State<Root> {
           gradient: LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            colors: [
-              Color(0xFF8A5A44),
-              Color(0xFF8A5A44).withOpacity(0.76),
-            ],
+            colors: [Color(0xFF8A5A44), Color(0xFF8A5A44).withOpacity(0.76)],
           ),
           borderRadius: BorderRadius.circular(50),
         ),
@@ -99,17 +105,22 @@ class _RootState extends State<Root> {
                       children: [
                         Icon(
                           _icons[index],
-                          color: isSelected ? Color(0xFFEDE0D4) : Color(0XFFDDB892),
+                          color: isSelected
+                              ? Color(0xFFEDE0D4)
+                              : Color(0XFFDDB892),
                           size: isSelected ? 22 : 20,
                         ),
                         SizedBox(height: 2),
                         Text(
                           _labels[index],
                           style: TextStyle(
-                            color: isSelected ? Color(0xFFEDE0D4) : Color(0XFFDDB892),
+                            color: isSelected
+                                ? Color(0xFFEDE0D4)
+                                : Color(0XFFDDB892),
                             fontSize: 11,
-                            fontWeight:
-                                isSelected ? FontWeight.w600 : FontWeight.w500,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w500,
                           ),
                         ),
                       ],
