@@ -7,7 +7,7 @@ class GradientScrollbar extends StatelessWidget {
   final double thickness;
 
   const GradientScrollbar({
-    Key? key,
+    super.key,
     required this.child,
     this.colors = const [
       Color(0xFF8A5A44),
@@ -15,7 +15,7 @@ class GradientScrollbar extends StatelessWidget {
       Color(0xFFEDE0D4),
     ],
     this.thickness = 8.0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -39,6 +39,7 @@ class _ItemCardState extends State<ItemCard> {
                 height: MediaQuery.of(context).size.height * 0.17,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
+                // ignore: deprecated_member_use
                 color: Colors.grey.withOpacity(0.15),
                   ),
                   child: ClipRRect(

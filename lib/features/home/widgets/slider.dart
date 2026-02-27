@@ -28,7 +28,6 @@ class _OffersSliderState extends State<OffersSlider> {
               setState(() {
                 _currentPage = page;
               });
-              print('Page changed to: $page');
             },
             itemCount: offerImages.length,
             itemBuilder: (context, index) {

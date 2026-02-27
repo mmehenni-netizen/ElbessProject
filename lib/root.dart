@@ -9,7 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Root extends StatefulWidget {
-  Root({super.key});
+  const Root({super.key});
 
   @override
   State<Root> createState() => _RootState();
@@ -52,6 +52,7 @@ class _RootState extends State<Root> {
     super.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
 
@@ -74,6 +75,7 @@ class _RootState extends State<Root> {
           gradient: LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
+            // ignore: deprecated_member_use
             colors: [Color(0xFF8A5A44), Color(0xFF8A5A44).withOpacity(0.76)],
           ),
           borderRadius: BorderRadius.circular(50),

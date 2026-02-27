@@ -1,14 +1,21 @@
 import 'package:elbess/core/constants/colors.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
 class Ordertrack extends StatefulWidget {
-  const Ordertrack({super.key, required this.status, required this.description, required this.time, required this.isdone});
+  const Ordertrack({
+    super.key,
+    required this.status,
+    required this.description,
+    required this.time,
+    required this.isdone,
+    this.showConnector = true,
+  });
   final String status;
   final String description;
   final String time;
   final bool isdone;
+  final bool showConnector;
 
   @override
   State<Ordertrack> createState() => _OrdertrackState();
@@ -32,6 +39,7 @@ class _OrdertrackState extends State<Ordertrack> {
             height: MediaQuery.of(context).size.height * 0.03,
             width: MediaQuery.of(context).size.width * 0.06,
             decoration: BoxDecoration(
+              // ignore: deprecated_member_use
               color: AppColors.primary.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
@@ -53,17 +61,20 @@ class _OrdertrackState extends State<Ordertrack> {
          
           ],
          ) ,
-        Gap(6),
-         Padding(padding: EdgeInsets.symmetric(horizontal: 10,),
-         child:  Container(
-            height: 20,
-            width: 2,
-            decoration: BoxDecoration(
-              color: widget.isdone ? AppColors.primary : Colors.grey[200],
-              borderRadius: BorderRadius.circular(10),
+        if (widget.showConnector) ...[
+          Gap(6),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: Container(
+              height: 20,
+              width: 2,
+              decoration: BoxDecoration(
+                color: widget.isdone ? AppColors.primary : Colors.grey[200],
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
-         ),
+        ],
           ],
         )
         );

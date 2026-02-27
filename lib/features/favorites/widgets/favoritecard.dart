@@ -26,9 +26,14 @@ class Favoritecard extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10 * hScale),
-      child: Container(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final double cardWidth = constraints.maxWidth;
+          final double imageWidth = cardWidth * 0.36;
+
+          return Container(
         height: screenHeight * 0.18,
-        width: screenWidth,
+        width: double.infinity,
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.primary),
           borderRadius: BorderRadius.circular(20 * hScale),
@@ -37,14 +42,15 @@ class Favoritecard extends StatelessWidget {
           children: [
             Gap(8 * hScale),
             SizedBox(
-              width: screenWidth * 0.40,
+              width: imageWidth,
               child: Stack(
                 children: [
                   Container(
-                    width: screenWidth * 0.43,
+                    width: imageWidth,
                     height: screenHeight * 0.16,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20 * hScale),
+                      // ignore: deprecated_member_use
                       color: Colors.grey.withOpacity(0.15),
                     ),
                     child: ClipRRect(
@@ -155,6 +161,8 @@ class Favoritecard extends StatelessWidget {
             Gap(8 * hScale),
           ],
         ),
+      );
+        },
       ),
     );
   }

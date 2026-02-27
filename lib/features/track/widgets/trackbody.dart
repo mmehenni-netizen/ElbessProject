@@ -1,10 +1,8 @@
-import 'package:elbess/core/constants/colors.dart';
-import 'package:elbess/features/track/widgets/ordertrack.dart';
+
 import 'package:elbess/features/track/widgets/track_card.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
+
 
 class Trackbody extends StatelessWidget {
   const Trackbody({super.key});
@@ -12,19 +10,18 @@ class Trackbody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            
             children: [
-               SizedBox(height:MediaQuery.of(context).size.height * 0.07),
-              const Text(
-                'Order Tracking',
-                style: TextStyle(fontFamily: "semi", color: Colors.black, fontSize: 20),
+              Gap(35),
+              Center(
+                child: Text(
+                  "Order Tracking",
+                  style: TextStyle(fontFamily: "semi", fontSize: 38 / 2),
+                ),
               ),
-              const SizedBox(height: 8),
+              Gap(10),
               ...List.generate(
                 3,
                 (index) => const Padding(

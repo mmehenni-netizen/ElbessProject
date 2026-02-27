@@ -1,5 +1,4 @@
 
-import 'package:elbess/features/Splashview/Presentation/splashview.dart';
 import 'package:elbess/root.dart';
 import 'package:flutter/material.dart';
 

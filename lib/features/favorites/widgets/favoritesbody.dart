@@ -12,7 +12,7 @@ class Favoritesbody extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              Gap(10),
+              Gap(35),
               Center(
                 child: Text(
                   "My Favorites",

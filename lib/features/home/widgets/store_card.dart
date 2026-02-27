@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
 class StoreCard extends StatefulWidget {
+  // ignore: non_constant_identifier_names
   const StoreCard({super.key, required this.store_name, required this.store_image});
+  // ignore: non_constant_identifier_names
   final String store_name;
+  // ignore: non_constant_identifier_names
   final String store_image;
 
   @override
