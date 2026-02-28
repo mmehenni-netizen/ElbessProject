@@ -12,21 +12,21 @@ class Favoritesbody extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              Gap(35),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
               Center(
                 child: Text(
                   "My Favorites",
-                  style: TextStyle(fontFamily: "semi", fontSize: 38 / 2),
+                  style: TextStyle(fontFamily: "bold", fontSize: 25),
                 ),
               ),
               Gap(20),
               ...List.generate(
-                6,
+                3,
                 (index) => Padding(
                   padding: EdgeInsets.symmetric(vertical: 10),
                   child: Favoritecard(
                     img: "assets/Images/clothes/item1.png",
-                    prdctname: "Nike Air Max 270 React",
+                    prdctname: "SweetShirt",
                     brand: "Nike",
                     price: "\$150.00",
                     rating: "4.5",

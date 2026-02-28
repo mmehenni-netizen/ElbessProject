@@ -14,21 +14,21 @@ class Trackbody extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              Gap(35),
+             SizedBox(height: MediaQuery.sizeOf(context).height * 0.01,),
               Center(
                 child: Text(
                   "Order Tracking",
-                  style: TextStyle(fontFamily: "semi", fontSize: 38 / 2),
+                  style: TextStyle(fontFamily: "bold", fontSize: 25),
                 ),
               ),
               Gap(10),
               ...List.generate(
                 3,
                 (index) => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
+                  padding: EdgeInsets.symmetric(vertical: 0),
                   child: TrackCard(
                     imagePath: "assets/Images/clothes/item1.png",
-                    itemName: 'Baggy Fit Jeans',
+                    itemName: 'Sweetshirt',
                     price: '620 DZ',
                     size: 'L',
                     color: 'Black',

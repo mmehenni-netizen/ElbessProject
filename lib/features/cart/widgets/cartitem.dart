@@ -224,11 +224,7 @@ class _CartitemState extends State<Cartitem> {
                           ),
                         ),
                         Gap(8 * hScale),
-                        Container(
-                          width: 1,
-                          height: 30 * vScale,
-                          color: Colors.black26,
-                        ),
+                       
                         ],
                       ),
                     ),

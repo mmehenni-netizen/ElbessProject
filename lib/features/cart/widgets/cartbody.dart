@@ -13,21 +13,21 @@ class Cartbody extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              Gap(35),
+              SizedBox(height: MediaQuery.sizeOf(context).height * 0.01,),
               Center(
                 child: Text(
                   "My Cart",
-                  style: TextStyle(fontFamily: "semi", fontSize: 38 / 2),
+                  style: TextStyle(fontFamily: "bold", fontSize: 25),
                 ),
               ),
-              Gap(10),
+              Gap(15),
               ...List.generate(
-                6,
+                3,
                 (index) => Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
+                  padding: EdgeInsets.symmetric(vertical: 2),
                   child: Cartitem(
                     img: "assets/Images/clothes/item1.png",
-                    prdctname: "Nike Air Max 270 React",
+                    prdctname: "SweetShirt",
                     size: "M",
                     color: "Black",
                     price: 150.00,

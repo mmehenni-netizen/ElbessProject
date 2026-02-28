@@ -19,10 +19,12 @@ class TrackCard extends StatefulWidget {
 class _TrackCardState extends State<TrackCard> {
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.sizeOf(context);
+
     return  Padding(
       padding: const EdgeInsets.all(10.0),
       child: Container(
-          width: double.infinity,
+          width: screenSize.width * 0.9,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
@@ -36,21 +38,24 @@ class _TrackCardState extends State<TrackCard> {
              child:  Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                  width: MediaQuery.of(context).size.width * 0.35,
-                  height: MediaQuery.of(context).size.height * 0.15,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                  // ignore: deprecated_member_use
-                  color: Colors.grey.withOpacity(0.15),
+                  Flexible(
+                    flex: 4,
+                    child: Container(
+                      height: screenSize.height * 0.15,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        // ignore: deprecated_member_use
+                        color: Colors.grey.withOpacity(0.15),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(widget.imagePath, fit: BoxFit.cover),
+                      ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(widget.imagePath,height: MediaQuery.of(context).size.height * 0.5,),
                   ),
-                ),
                 Gap(10),
                  Expanded(
+                  flex: 6,
                    child: Column(
                  mainAxisAlignment: MainAxisAlignment.start ,
                  crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,7 +84,14 @@ class _TrackCardState extends State<TrackCard> {
                         
                         Text("size :", style: TextStyle(fontFamily: "semi", color: Colors.grey, fontSize: 16),),
                         Gap(3),
-                       Text(widget.size, style: TextStyle(fontFamily: "semi",fontWeight: FontWeight.w600, color: Colors.black, fontSize: 15),),
+                       Expanded(
+                        child: Text(
+                          widget.size,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontFamily: "semi",fontWeight: FontWeight.w600, color: Colors.black, fontSize: 15),
+                        ),
+                       ),
                       ],
                     ),
                      Row(
@@ -87,7 +99,14 @@ class _TrackCardState extends State<TrackCard> {
                         
                         Text("color :", style: TextStyle(fontFamily: "semi", color: Colors.grey, fontSize: 16),),
                         Gap(3),
-                       Text(widget.color, style: TextStyle(fontFamily: "semi",fontWeight: FontWeight.w600, color: Colors.black, fontSize: 15),),
+                       Expanded(
+                        child: Text(
+                          widget.color,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontFamily: "semi",fontWeight: FontWeight.w600, color: Colors.black, fontSize: 15),
+                        ),
+                       ),
                       ],
                     ),
                 
@@ -98,53 +117,80 @@ class _TrackCardState extends State<TrackCard> {
                  )
                 ],
               ),),
-          Gap(5),
+          Gap(3),
           Padding(padding: EdgeInsets.symmetric(horizontal: 15),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                height: MediaQuery.of(context).size.height * 0.03,
-                width: MediaQuery.of(context).size.width * 0.2,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Center(child: Text("time line", style: TextStyle(fontFamily: "semi", color: Colors.grey, fontSize: 10),)),
-              ),
-              Row(
-               children:List.generate(15, (index){
-                return Container(
-                  height: 5,
-                  width:10,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    shape: BoxShape.circle
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final dotCount = ((constraints.maxWidth - 140) / 8).floor().clamp(6, 15);
+
+              return Row(
+                children: [
+                  Flexible(
+                    flex: 3,
+                    child: Container(
+                      height: screenSize.height * 0.03,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "time line",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontFamily: "semi", color: Colors.grey, fontSize: 10),
+                        ),
+                      ),
+                    ),
                   ),
-                );
-               }),
-              ),
-              Container(
-                height: MediaQuery.of(context).size.height * 0.03,
-                width: MediaQuery.of(context).size.width * 0.2,
-                decoration: BoxDecoration(
-                  // ignore: deprecated_member_use
-                  color: Color(0xff8A5A44).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon( CupertinoIcons.check_mark_circled_solid, size: 12, color: AppColors.primary,),
-                    Gap(2),
-                    Center(child: Text("in progress", style: TextStyle(fontFamily: "semi", color: AppColors.primary, fontSize: 8),))
-      
-                  ],
-                ),
-              ),
-           
-            ],
-           ) ,
+                  const SizedBox(width: 6),
+                  Expanded(
+                    flex: 4,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(dotCount, (index) {
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 1),
+                          height: 5,
+                          width: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            shape: BoxShape.circle,
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    flex: 3,
+                    child: Container(
+                      height: screenSize.height * 0.030,
+                      decoration: BoxDecoration(
+                        color: Color(0xff8A5A44).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(CupertinoIcons.check_mark_circled_solid, size: 12, color: AppColors.primary),
+                          Gap(2),
+                          Flexible(
+                            child: Text(
+                              "in progress",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontFamily: "semi", color: AppColors.primary, fontSize: 8),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
           ),
            Column(
             children: List.generate(4, (index){

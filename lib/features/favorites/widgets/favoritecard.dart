@@ -32,7 +32,7 @@ class Favoritecard extends StatelessWidget {
           final double imageWidth = cardWidth * 0.36;
 
           return Container(
-        height: screenHeight * 0.18,
+        height: screenHeight * 0.20,
         width: double.infinity,
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.primary),
