@@ -4,6 +4,8 @@ import 'package:elbess/features/home/widgets/category_card.dart';
 import 'package:elbess/features/home/widgets/item_card.dart';
 import 'package:elbess/features/home/widgets/slider.dart';
 import 'package:elbess/features/home/widgets/store_card.dart';
+import 'package:elbess/features/productdetail/presentation/product_detail_view.dart';
+import 'package:elbess/features/store_page/presentation/store_view.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -99,8 +101,13 @@ class Homebody extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Row(
           children:List.generate(5, (index){
-            return Padding(padding: EdgeInsets.symmetric(horizontal: 2),
+            return GestureDetector(
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => StoreView()));
+              },
+              child: Padding(padding: EdgeInsets.symmetric(horizontal: 2),
             child:  StoreCard(store_image: "assets/Images/stores/store2.png", store_name: "Stepx",),
+            ),
             );
 
           }),
@@ -131,8 +138,13 @@ class Homebody extends StatelessWidget {
   ),
   itemCount: 3, 
   itemBuilder: (context, index) {
-    return Padding(padding: EdgeInsets.symmetric(horizontal: 6),
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailView()));
+      },
+      child: Padding(padding: EdgeInsets.symmetric(horizontal: 6),
     child: ItemCard(imagePath: 'assets/Images/clothes/item${index + 1}.png', storeName: 'Boutique Parma', itemName: 'Sweatshirt', price: '480.00Dz', rating: '4.5', isFavorite: false,),
+    ),
     );
   },
 )
