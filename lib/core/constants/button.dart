@@ -56,7 +56,7 @@ class OptionsButton extends StatelessWidget {
                 
                 child: Center(
                   child: Image.asset(
-                    'assets/Images/google.png',
+                    'assets/Images/socialMediaLogos/google.png',
                     width: 20,
                     height: 20,
                     fit: BoxFit.contain,
@@ -74,7 +74,7 @@ class OptionsButton extends StatelessWidget {
                 ),
                 child: Center(
                   child: Image.asset(
-                    'assets/Images/facebook.png',
+                    'assets/Images/socialMediaLogos/facebook.png',
                     width: 20,
                     height: 20,
                     fit: BoxFit.contain,
@@ -93,7 +93,7 @@ class OptionsButton extends StatelessWidget {
                 ),
                 child: Center(
                   child: Image.asset(
-                    'assets/Images/apple.png',
+                    'assets/Images/socialMediaLogos/apple.png',
                     width: 20,
                     height: 20,
                     fit: BoxFit.contain,

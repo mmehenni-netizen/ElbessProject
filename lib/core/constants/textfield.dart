@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 class CustomTextField extends StatefulWidget {
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.title,
     this.height,
     required this.hinttext,
     this.prefixIcon,
     this.suffixIcon,
     this.obscureText = false,
-  }) : super(key: key);
+  });
 
   final String hinttext;
   final String title;

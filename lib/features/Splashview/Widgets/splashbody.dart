@@ -1,7 +1,7 @@
 
 import 'dart:async';
 
-import 'package:elbess/features/Login_view/Presentation/options_view.dart';
+import 'package:elbess/features/Options_view/Presentation/options_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
@@ -49,7 +49,7 @@ class _SplashbodyState extends State<Splashbody> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SvgPicture.asset(
-              'assets/Images/Logo.svg',
+              'assets/Images/appLogo/Logo.svg',
               width: 281,
               height: 42,
               fit: BoxFit.contain,

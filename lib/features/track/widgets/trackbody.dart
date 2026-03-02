@@ -1,0 +1,44 @@
+
+import 'package:elbess/features/track/widgets/track_card.dart';
+import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+
+
+class Trackbody extends StatelessWidget {
+  const Trackbody({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Column(
+            children: [
+             SizedBox(height: MediaQuery.sizeOf(context).height * 0.01,),
+              Center(
+                child: Text(
+                  "Order Tracking",
+                  style: TextStyle(fontFamily: "bold", fontSize: 25),
+                ),
+              ),
+              Gap(10),
+              ...List.generate(
+                3,
+                (index) => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 0),
+                  child: TrackCard(
+                    imagePath: "assets/Images/clothes/item1.png",
+                    itemName: 'Sweetshirt',
+                    price: '620 DZ',
+                    size: 'L',
+                    color: 'Black',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

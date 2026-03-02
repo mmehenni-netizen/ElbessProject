@@ -143,13 +143,11 @@ class _SignupbodyState extends State<Signupbody> {
 
           ],
         )
-
               
             ],
           ),
         ),
-      ),
-
+      )
     );
   }
 }
