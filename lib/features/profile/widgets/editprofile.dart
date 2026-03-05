@@ -1,25 +1,27 @@
 import 'package:elbess/core/constants/button.dart';
-import 'package:elbess/features/profile/widgets/editprofile.dart';
-import 'package:elbess/features/profile/widgets/infocontainer.dart';
-import 'package:elbess/root.dart';
+import 'package:elbess/core/constants/textfield.dart';
+import 'package:elbess/features/profile/presentation/profileview.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-
-
-class Profilebody extends StatelessWidget {
-  const Profilebody({super.key});
+class EditProfile extends StatelessWidget {
+  const EditProfile({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               const Gap(30),
               SizedBox(
                 height: 24,
@@ -29,15 +31,14 @@ class Profilebody extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: GestureDetector(
                         onTap: () {
-                             Navigator.push(context, MaterialPageRoute(builder: (_) =>  Root()));
-             
-                        },
+                Navigator.push(context, MaterialPageRoute(builder: (_) =>  Profileview()));
+              },
                         child: const Icon(Icons.arrow_back_ios_new_outlined, size: 20),
                       ),
                     ),
                     Center(
                       child: Text(
-                        'Profile',
+                        'Edit Profile',
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 20,
@@ -84,28 +85,29 @@ class Profilebody extends StatelessWidget {
                 ),
               ),
               const Gap(28),
-              FillInfoContainer(hint: "Full name"),
+              FillTextField(hint: "Full name"),
               Gap(20),
-              FillInfoContainer(hint: "Family name"),
+              FillTextField(hint: "Family name"),
               Gap(20),
-              FillInfoContainer(hint: "Phone number"),
+              FillTextField(hint: "Phone number"),
               Gap(20),
-              FillInfoContainer(hint: "City"),
+              FillTextField(hint: "City"),
               Gap(20),
-              FillInfoContainer(hint: "Address"),
+              FillTextField(hint: "Adress"),
               Gap(20),
-              FillInfoContainer(hint: "Gender"),
+              FillTextField(hint: "Gender"),
               const Gap(60),
-              CustomButton(text: "Edit Profile", onPressed: () {   Navigator.push(context, MaterialPageRoute(builder: (_) =>  EditProfile()));
-             }),
+              CustomButton(text: "Save changes", onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) =>  Profileview()));
+              }),
               const Gap(20),
 
               
-            ],
+              ],
+            ),
           ),
         ),
       ),
-
     );
   }
 }

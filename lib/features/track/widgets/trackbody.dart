@@ -14,7 +14,7 @@ class Trackbody extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-             SizedBox(height: MediaQuery.sizeOf(context).height * 0.01,),
+             SizedBox(height: MediaQuery.sizeOf(context).height * 0.03,),
               Center(
                 child: Text(
                   "Order Tracking",

@@ -1,5 +1,4 @@
 import 'package:elbess/core/constants/colors.dart';
-import 'package:elbess/core/utils/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 class CustomButton extends StatelessWidget {
@@ -13,7 +12,7 @@ class CustomButton extends StatelessWidget {
       onTap: onPressed,
       child: Container(
          height: 57,
-          width: SizeConfig.screenWidth,
+          width: double.infinity,
         decoration: BoxDecoration(
          
           color: AppColors.primary,

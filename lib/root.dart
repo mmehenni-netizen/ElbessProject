@@ -2,8 +2,6 @@ import 'package:elbess/features/favorites/presentation/favoritesview.dart';
 import 'package:elbess/features/home/presentation/homeview.dart';
 import 'package:elbess/features/cart/presentation/cartview.dart';
 import 'package:elbess/core/utils/size_config.dart';
-
-import 'package:elbess/features/profile/presentation/profileview.dart';
 import 'package:elbess/features/track/presentation/trackview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -24,14 +22,13 @@ class _RootState extends State<Root> {
     CupertinoIcons.shopping_cart,
     CupertinoIcons.location,
     CupertinoIcons.heart,
-    CupertinoIcons.person,
+    
   ];
   final List<String> _labels = [
     'Home',
     'Cart',
     'Track',
     'Favorites',
-    'Profile',
   ];
   @override
   void initState() {
@@ -40,7 +37,7 @@ class _RootState extends State<Root> {
       Cartview(),
       Trackview(),
       Favoritesview(),
-      Profileview(),
+      
     ];
     pageController = PageController(initialPage: currentScreen);
     super.initState();
