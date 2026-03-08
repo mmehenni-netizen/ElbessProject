@@ -1,3 +1,8 @@
+
+import 'package:elbess/features/Auth/Presentation/Pages/signup_view.dart';
+import 'package:elbess/features/Splashview/Presentation/splashview.dart';
+import 'package:elbess/features/productdetail/presentation/product_detail_view.dart';
+import 'package:elbess/features/store_page/presentation/store_view.dart';
 import 'package:elbess/root.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +22,7 @@ class MyApp extends StatelessWidget {
         
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: const Root(),
+      home: Splashview(),
     );
   }
 }

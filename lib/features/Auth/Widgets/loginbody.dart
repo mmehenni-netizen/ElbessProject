@@ -1,23 +1,85 @@
 import 'package:elbess/core/constants/button.dart';
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/constants/textfield.dart';
+import 'package:elbess/core/network/api_error.dart';
 import 'package:elbess/features/Auth/Presentation/Pages/signup_view.dart';
+import 'package:elbess/features/Auth/data/auth_repo.dart';
+import 'package:elbess/root.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-class Loginbody extends StatelessWidget {
+class Loginbody extends StatefulWidget {
   const Loginbody({super.key});
+
+  @override
+  State<Loginbody> createState() => _LoginbodyState();
+}
+
+class _LoginbodyState extends State<Loginbody> {
+  final _formKey = GlobalKey<FormState>();
+  final AuthRepo authRepo = AuthRepo();
+  late final TextEditingController emailController = TextEditingController();
+  late final TextEditingController passwordController = TextEditingController();
+  bool isLoading = false;
+
+  Future<void> login() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        isLoading = true;
+      });
+
+      try {
+        await authRepo.login(emailController.text, passwordController.text);
+        if (!mounted) {
+          return;
+        }
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const Root()),
+          (route) => false,
+        );
+      } catch (e) {
+        String errorMessage = 'An error occurred during login.';
+        if (e is ApiError) {
+          errorMessage = e.message;
+        }
+
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      } finally {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      body: Form(
+        key: _formKey,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               const Gap(16),
               Align(
                 alignment: Alignment.centerLeft,
@@ -72,6 +134,7 @@ class Loginbody extends StatelessWidget {
                 title: "Email",
                 hinttext: "enter your email",
                 prefixIcon: Icons.email_outlined,
+                controller: emailController,
               ),
               const Gap(20),
               CustomTextField(
@@ -79,12 +142,15 @@ class Loginbody extends StatelessWidget {
                 hinttext: "enter your password",
                 prefixIcon: Icons.lock_outline,
                 obscureText: true,
+                controller: passwordController,
               ),
               const Gap(40),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: CustomButton(text: "Log in", onPressed: () {  },),
-              ),
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: CustomButton(text: "Log in", onPressed: login),
+                    ),
               const Gap(40),
               Row(
                 children: [
@@ -116,26 +182,40 @@ class Loginbody extends StatelessWidget {
               OptionsButton(),
               Gap(20),
               Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("Don't have an account? ",style: TextStyle(fontSize: 12,fontFamily: "medium",color: Colors.grey),),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SignupView()),
-                );
-              },
-              child: Text("Sign up",style: TextStyle(fontSize: 12,fontFamily: "semi",color: AppColors.primary),),
-            )
-
-          ],
-        )
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Don't have an account? ",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: "medium",
+                      color: Colors.grey,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SignupView()),
+                      );
+                    },
+                    child: Text(
+                      "Sign up",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: "semi",
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              )
               
-            ],
+              ],
+            ),
           ),
         ),
-      )
+      ),
     );
   }
 }
