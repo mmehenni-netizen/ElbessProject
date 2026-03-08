@@ -1,16 +1,14 @@
-import { mailtrapClient, sender } from "./config.js"
+import {transporter} from "./config.js"
 import { PASSWORD_RESET_REQUEST_TEMPLATE, PASSWORD_RESET_SUCCESS_TEMPLATE, VERIFICATION_EMAIL_TEMPLATE } from "./emailTemplate.js"
 
 export const sendVerificationEmail = async (email, verificationToken) => {
-    const recipent = [{email}]
 
     try {
-        const response = await mailtrapClient.send({
-            from: sender,
-            to: recipent,
+        const response = await transporter.sendMail({
+            to: email,
             subject: "Verify your email",
-            html: VERIFICATION_EMAIL_TEMPLATE.replace("{verificationCode}", verificationToken),
-            category: "Email Verification"
+            html: VERIFICATION_EMAIL_TEMPLATE.replace("{verificationCode}", verificationToken)
+           
         })
 
         console.log("Email sent succesfully", response)
@@ -21,15 +19,11 @@ export const sendVerificationEmail = async (email, verificationToken) => {
 }
 
 export const sendResetEmail = async (email, resetUrl) => {
-    const recipent = [{email}]
-
     try {
-        const response = await mailtrapClient.send({
-            from: sender,
-            to: recipent,
+        const response = await transporter.sendMail({
+            to: email,
             subject: "Password Reset Request",
-            html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetUrl),
-            category: "Password Reset"
+            html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetUrl)
         })
 
         console.log("Email sent succesfully", response)
@@ -40,15 +34,11 @@ export const sendResetEmail = async (email, resetUrl) => {
 }
 
 export const sendResetSuccessEmail = async (email) => {
-    const recipent = [{email}]
-
     try {
-        const response = await mailtrapClient.send({
-            from: sender,
-            to: recipent,
+        const response = await transporter.sendMail({
+            to: email,
             subject: "Password Reset Success",
-            html: PASSWORD_RESET_SUCCESS_TEMPLATE,
-            category: "Password Reset"
+            html: PASSWORD_RESET_SUCCESS_TEMPLATE
         })
 
         console.log("Email sent succesfully", response)
