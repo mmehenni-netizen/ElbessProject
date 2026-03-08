@@ -6,13 +6,14 @@ import authRoute from './routes/auth.js'
 
 const app = express()
 const PORT = process.env.PORT || 5000
+const HOST = process.env.HOST || "0.0.0.0"
 
 dotenv.config()
 
 app.use(express.json())
 app.use("/api/auth", authRoute)
 
-app.listen(PORT, () => {
-    connectDB();
-    console.log("server is running on port 5000")
+app.listen(PORT, HOST, () => {
+   connectDB();
+    console.log(`server is running on http://${HOST}:${PORT}`)
 })

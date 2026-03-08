@@ -9,6 +9,7 @@ class CustomTextField extends StatefulWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.obscureText = false,
+    required this.controller,
   });
 
   final String hinttext;
@@ -17,6 +18,7 @@ class CustomTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final Widget? suffixIcon;
   final bool obscureText;
+  final TextEditingController controller;
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -51,6 +53,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: TextFormField(
+            controller: widget.controller,
             obscureText: _isObscured,
             decoration: InputDecoration(
               constraints: BoxConstraints(minHeight: widget.height ?? 56),
