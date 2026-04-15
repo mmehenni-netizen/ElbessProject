@@ -78,4 +78,37 @@ class AuthRepo {
     }
   }
 
+  Future<UserModel?> verifyEmail(String code) async {
+    try {
+      final response = await apiService.post('/auth/verify-email', {
+        'code': code.trim(),
+      });
+
+      if (response is ApiError) {
+        throw response;
+      }
+
+      if (response is! Map<String, dynamic>) {
+        throw ApiError(message: 'Unexpected server response');
+      }
+
+      if (response['success'] == true) {
+        final token = response['token'];
+        if (token is String && token.isNotEmpty) {
+          await PrefHelpers.saveToken(token);
+        }
+        return UserModel.fromJson(response);
+      }
+
+      throw ApiError(message: response['message'] ?? 'An error occurred');
+    } on DioException catch (e) {
+      throw ApiException.handleError(e);
+    } catch (e) {
+      if (e is ApiError) {
+        throw e;
+      }
+      throw ApiError(message: e.toString());
+    }
+  }
+
 }

@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: Splashview(),
+      home: const Splashview(),
     );
   }
 }

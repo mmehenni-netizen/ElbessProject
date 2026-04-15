@@ -13,7 +13,16 @@ dotenv.config()
 app.use(express.json())
 app.use("/api/auth", authRoute)
 
-app.listen(PORT, HOST, () => {
-   connectDB();
-    console.log(`server is running on http://${HOST}:${PORT}`)
-})
+const startServer = async () => {
+    try {
+        await connectDB()
+        app.listen(PORT, HOST, () => {
+            console.log(`server is running on http://${HOST}:${PORT}`)
+        })
+    } catch (error) {
+        console.error("Server startup failed:", error.message)
+        process.exit(1)
+    }
+}
+
+startServer()

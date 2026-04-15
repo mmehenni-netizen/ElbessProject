@@ -2,6 +2,7 @@ import 'package:elbess/core/constants/button.dart';
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/constants/textfield.dart';
 import 'package:elbess/core/network/api_error.dart';
+import 'package:elbess/core/utils/app_snackbar.dart';
 import 'package:elbess/features/Auth/Presentation/Pages/signup_view.dart';
 import 'package:elbess/features/Auth/data/auth_repo.dart';
 import 'package:elbess/root.dart';
@@ -47,9 +48,7 @@ class _LoginbodyState extends State<Loginbody> {
         if (!mounted) {
           return;
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+        AppSnackBar.show(context, errorMessage);
       } finally {
         if (!mounted) {
           return;

@@ -1,5 +1,4 @@
 import 'package:elbess/core/constants/colors.dart';
-import 'package:elbess/core/utils/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -38,207 +37,190 @@ class _CartitemState extends State<Cartitem> {
 
   @override
   Widget build(BuildContext context) {
-    final double screenWidth = SizeConfig.screenWidth!;
-    final double screenHeight = SizeConfig.screenHeight!;
-    final double hScale = (screenWidth / 375).clamp(0.9, 1.15);
-    final double vScale = (screenHeight / 812).clamp(0.9, 1.1);
-
     return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10 * hScale),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final double cardWidth = constraints.maxWidth;
-              final double imageWidth = cardWidth * 0.36;
-              return Container(
-        height: screenHeight * 0.205,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          
-          borderRadius: BorderRadius.circular(20 * hScale),
-        ),
-        child: Row(
-          children: [
-            Gap(6 * hScale),
-            SizedBox(
-              width: imageWidth,
-              child: Container(
-                width: double.infinity,
-                height: screenHeight * 0.17,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20 * hScale),
-                  // ignore: deprecated_member_use
-                  color: Colors.grey.withOpacity(0.15),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20 * hScale),
-                  child: Image.asset(widget.img, fit: BoxFit.contain),
-                ),
-              ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final cardWidth = constraints.maxWidth;
+          final scale = (cardWidth / 340).clamp(0.9, 1.08);
+          final imageSize = 82 * scale;
+
+          return Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22 * scale),
+              border: Border.all(color: const Color(0xFFE5DDD6)),
             ),
-            Gap(8 * hScale),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 14 * vScale),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          widget.prdctname,
-                          style: TextStyle(fontSize: 14 * hScale, fontFamily: "semi"),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Gap(8 * hScale),
-                      Text(
-                        "${widget.price.toStringAsFixed(2)} DZ",
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 14 * hScale,
-                          fontFamily: 'semi',
-                        ),
-                      ),
-                    ],
-                  ),
-                  Gap(10 * vScale),
-                  Row(
-                    children: [
-                      Text("Size :", style: TextStyle(fontFamily: "semi", color: Colors.grey, fontSize: 16 * hScale),),
-                      Gap(3 * hScale),
-                     Text(widget.size, style: TextStyle(fontFamily: "semi",fontWeight: FontWeight.w600, color: Colors.black, fontSize: 15 * hScale),),
-                    ],
-                  ),
-                  Row(
-                    children:[
-                      
-                      Text("color :", style: TextStyle(fontFamily: "semi", color: Colors.grey, fontSize: 16 * hScale),),
-                      Gap(3 * hScale),
-                     Text(widget.color, style: TextStyle(fontFamily: "semi",fontWeight: FontWeight.w600, color: Colors.black, fontSize: 15 * hScale),),
-                    ],
-                  ),
-                  Gap(16 * vScale),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                        SizedBox(
-                          width: 126,
-                          height: 28,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(13.5),
-                              border: Border.all(color: Colors.black26),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    if (quantity > 1) {
-                                      setState(() {
-                                        quantity--;
-                                      });
-                                    }
-                                  },
-                                  child: SizedBox(
-                                    width: 36,
-                                    height: 27,
-                                    child: Center(
-                                      child: Text(
-                                        '-',
-                                        style: TextStyle(
-                                          fontFamily: 'semi',
-                                          fontSize: 24,
-                                          color: Colors.black,
-                                          height: 1,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Container(width: 1, height: 18, color: Colors.black26),
-                                SizedBox(
-                                  width: 45,
-                                  height: 27,
-                                  child: Center(
-                                    child: Text(
-                                      '$quantity',
-                                      style: TextStyle(
-                                        fontFamily: 'semi',
-                                        fontSize: 20,
-                                        height: 1,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Container(width: 1, height: 18, color: Colors.black26),
-                                InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      quantity++;
-                                    });
-                                  },
-                                  child: SizedBox(
-                                    width: 36,
-                                    height: 27,
-                                    child: Center(
-                                      child: Text(
-                                        '+',
-                                        style: TextStyle(
-                                          fontFamily: 'semi',
-                                          fontSize: 24,
-                                          color: Colors.black,
-                                          height: 1,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Gap(6 * hScale),
-                        InkWell(
-                          onTap: widget.onDelete,
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            width: 32,
-                            height: 26,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF1E1E),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Icon(
-                              Icons.delete_outline,
-                              color: Colors.white,
-                              size: 22,
-                            ),
-                          ),
-                        ),
-                        Gap(8 * hScale),
-                       
-                        ],
-                      ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 4 * scale,
+                  height: 120 * scale,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5D3CF),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(22 * scale),
+                      bottomLeft: Radius.circular(22 * scale),
                     ),
                   ),
-                  
-                ],
-              ),
-            ),
-            const SizedBox.shrink(),
+                ),
+                Gap(12 * scale),
+                Container(
+                  width: imageSize,
+                  height: imageSize,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F3F3),
+                    borderRadius: BorderRadius.circular(18 * scale),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18 * scale),
+                    child: Image.asset(
+                      widget.img,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                Gap(12 * scale),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: 14 * scale,
+                      horizontal: 2 * scale,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.prdctname,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 17 * scale,
+                                fontFamily: 'semi',
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(height: 6 * scale),
+                            Text(
+                              'ELBESS Studio • ${widget.color}, ${widget.size}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11.5 * scale,
+                                fontFamily: 'medium',
+                                color: const Color(0xFF7F746E),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              '\$${widget.price.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 18 * scale,
+                                fontFamily: 'semi',
+                              ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              height: 30 * scale,
+                              width: 122 * scale,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16 * scale),
+                                border: Border.all(color: const Color(0xFFE0D8D1)),
+                              ),
+                              child: Row(
+                                children: [
+                                  _QuantityButton(
+                                    icon: Icons.remove,
+                                    onTap: () {
+                                      if (quantity > 1) {
+                                        setState(() {
+                                          quantity--;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 18,
+                                    color: const Color(0xFFE0D8D1),
+                                  ),
+                                  Expanded(
+                                    child: Center(
+                                      child: Text(
+                                        '$quantity',
+                                        style: TextStyle(
+                                          fontSize: 16 * scale,
+                                          fontFamily: 'semi',
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 18,
+                                    color: const Color(0xFFE0D8D1),
+                                  ),
+                                  _QuantityButton(
+                                    icon: Icons.add,
+                                    onTap: () {
+                                      setState(() {
+                                        quantity++;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Gap(8 * scale),
               ],
             ),
           );
-            },
-          ),
-        );
+        },
+      ),
+    );
+  }
+}
+
+class _QuantityButton extends StatelessWidget {
+  const _QuantityButton({
+    required this.icon,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: SizedBox(
+        width: 40,
+        height: 32,
+        child: Icon(
+          icon,
+          size: 18,
+          color: Colors.black87,
+        ),
+      ),
+    );
   }
 }

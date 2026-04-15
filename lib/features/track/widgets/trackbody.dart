@@ -23,13 +23,13 @@ class Trackbody extends StatelessWidget {
               ),
               Gap(10),
               ...List.generate(
-                3,
+                1,
                 (index) => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 0),
                   child: TrackCard(
                     imagePath: "assets/Images/clothes/item1.png",
                     itemName: 'Sweetshirt',
-                    price: '620 DZ',
+                    price: '620.00 DZ',
                     size: 'L',
                     color: 'Black',
                   ),
