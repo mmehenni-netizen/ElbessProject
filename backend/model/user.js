@@ -1,51 +1,98 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
-import {connectDB} from "../config/db.js"
+import { connectDB } from "../config/db.js";
+import { productModel } from "./product.js";
 
-const {Schema} = mongoose
+const { Schema } = mongoose;
 
-const userSchema = new Schema({
+const userSchema = new Schema(
+  {
     username: {
-        type : String,
-        required : true,
-        unique : true,
+      type: String,
+      required: true,
+      unique: true,
     },
+
     email: {
-        type : String,
-        lowercase : true,
-        required : true,
-        unique : true,
+      type: String,
+      lowercase: true,
+      required: true,
+      unique: true,
     },
     password: {
-        type : String,
-        required : true,
-   
+      type: String,
+      required: true,
     },
     lastLogin: {
-        type : Date,
-        default: Date.now
+      type: Date,
+      default: Date.now,
     },
     isVerified: {
-        type : Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     isSeller: {
-        type : Boolean,
-        default : false
+      type: Boolean,
+      default: false,
     },
-    resetPasswordToken : String,
-    resetPasswordExpiresAt : Date,
-    verificationToken : String,
-    verificationTokenExpiresAt : Date
-}, {timestamps : true})
+    favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
+    orders: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Order",
+      },
+    ],
 
-userSchema.index(
-    { createdAt: 1 },  
-    { 
-        expireAfterSeconds: 60, 
-        partialFilterExpression: { isVerified: false } 
-    }
+    firstName: {
+      type: String,
+      default: "",
+    },
+
+    lastName: {
+      type: String,
+      default: "",
+    },
+
+    phone: {
+      type: String,
+      default: "",
+    },
+
+    address: {
+      type: String,
+      default: "",
+    },
+
+    dateOfBirth: {
+      type: Date,
+      default: null,
+    },
+
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+      default: null,
+    },
+
+    resetPasswordToken: String,
+    resetPasswordExpiresAt: Date,
+    verificationToken: String,
+    verificationTokenExpiresAt: Date,
+  },
+  { timestamps: true },
 );
 
-export const userModel = mongoose.model("user", userSchema)
+userSchema.index(
+  { createdAt: 1 },
+  {
+    expireAfterSeconds: 60,
+    partialFilterExpression: { isVerified: false },
+  },
+);
 
+export const userModel = mongoose.model("user", userSchema);
