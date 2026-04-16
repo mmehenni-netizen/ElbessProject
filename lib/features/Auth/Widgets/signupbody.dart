@@ -2,8 +2,9 @@ import 'package:elbess/core/constants/button.dart';
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/constants/textfield.dart';
 import 'package:elbess/core/network/api_error.dart';
-import 'package:elbess/features/Auth/Presentation/Pages/fill_profile_view.dart';
+import 'package:elbess/core/utils/app_snackbar.dart';
 import 'package:elbess/features/Auth/Presentation/Pages/login_view.dart';
+import 'package:elbess/features/Auth/Widgets/verifyEmail.dart';
 import 'package:elbess/features/Auth/data/auth_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart' show Gap;
@@ -37,9 +38,12 @@ class _SignupbodyState extends State<Signupbody> {
     });
     try {
       await authRepo.signup(usernameController.text, emailController.text, passwordController.text);
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => FillProfileView()),
+        MaterialPageRoute(
+          builder: (context) => VerifyEmailView(email: emailController.text.trim()),
+        ),
       );
     } catch (e) {
       
@@ -49,23 +53,20 @@ class _SignupbodyState extends State<Signupbody> {
 
         if (_isNonBlockingEmailSendFailure(errorMessage)) {
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Account created, but verification email was not sent due to provider limits. Try again later.',
-              ),
-            ),
+          AppSnackBar.show(
+            context,
+            'Account created, but verification email was not sent due to provider limits. Try again later.',
           );
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => FillProfileView()),
+            MaterialPageRoute(
+              builder: (context) => VerifyEmailView(email: emailController.text.trim()),
+            ),
           );
           return;
         }
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      AppSnackBar.show(context, errorMessage);
     } finally {
       setState(() {
         isLoading = false;

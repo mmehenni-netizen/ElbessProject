@@ -1,4 +1,5 @@
 import 'package:elbess/core/constants/colors.dart';
+import 'package:elbess/features/checkout/presentation/checkout_view.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -278,17 +279,27 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
               ),
              ),
              Gap(5),
-            Container(
-              width: screenSize.width * 0.43,
-              height: screenSize.height * 0.05,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Center(
-                child: Text(
-                  "Buy Now",
-                  style: TextStyle(fontFamily: "semi", color: Colors.white, fontSize: 16),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CheckoutView(),
+                  ),
+                );
+              },
+              child: Container(
+                width: screenSize.width * 0.43,
+                height: screenSize.height * 0.05,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Center(
+                  child: Text(
+                    "Buy Now",
+                    style: TextStyle(fontFamily: "semi", color: Colors.white, fontSize: 16),
+                  ),
                 ),
               ),
             )

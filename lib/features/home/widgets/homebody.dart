@@ -103,7 +103,15 @@ class _HomebodyState extends State<Homebody> {
 
             Text("Categories",style: TextStyle(fontSize: sectionTitleFont, fontFamily: "semi",color: Colors.black),),
                Spacer(),
-            Text("see all",style: TextStyle(fontSize: captionFont, fontFamily: "medium",color: Colors.grey),),
+            GestureDetector(
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const Categoriesbody()),
+                );
+              },
+              child: Text("see all",style: TextStyle(fontSize: captionFont, fontFamily: "medium",color: Colors.grey),),
+            ),
              
              
             ],
