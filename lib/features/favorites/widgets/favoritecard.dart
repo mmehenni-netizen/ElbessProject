@@ -1,4 +1,5 @@
 import 'package:elbess/core/constants/colors.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -10,6 +11,7 @@ class Favoritecard extends StatelessWidget {
     required this.brand,
     required this.price,
     required this.category,
+    this.onRemoveTap,
   });
 
   final String img;
@@ -17,6 +19,57 @@ class Favoritecard extends StatelessWidget {
   final String brand;
   final String price;
   final String category;
+  final VoidCallback? onRemoveTap;
+
+  String _resolveImageUrl(String rawPath) {
+    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
+      return rawPath;
+    }
+
+    if (rawPath.startsWith('/')) {
+      final host = kIsWeb
+          ? 'http://localhost:5000'
+          : defaultTargetPlatform == TargetPlatform.android
+              ? 'http://10.0.2.2:5000'
+              : 'http://localhost:5000';
+      return '$host$rawPath';
+    }
+
+    return rawPath;
+  }
+
+  Widget _buildImage(String rawPath) {
+    final trimmed = rawPath.trim();
+    if (trimmed.isEmpty) {
+      return const Center(
+        child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+      );
+    }
+
+    if (trimmed.startsWith('assets/')) {
+      return Image.asset(
+        trimmed,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => const Center(
+          child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+        ),
+      );
+    }
+
+    if (!trimmed.contains('/') && !trimmed.contains('\\')) {
+      return const Center(
+        child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+      );
+    }
+
+    return Image.network(
+      _resolveImageUrl(trimmed),
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => const Center(
+        child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,23 +102,26 @@ class Favoritecard extends StatelessWidget {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10* scale),
-                      child: Image.asset(img, fit: BoxFit.contain),
+                      child: _buildImage(img),
                     ),
                   ),
                   Positioned(
                     top: 8 * scale,
                     right: 8 * scale,
-                    child: Container(
-                      height: 26 * scale,
-                      width: 26 * scale,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.favorite_border_rounded,
-                        size: 16 * scale,
-                        color: AppColors.primary,
+                    child: GestureDetector(
+                      onTap: onRemoveTap,
+                      child: Container(
+                        height: 26 * scale,
+                        width: 26 * scale,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.favorite,
+                          size: 16 * scale,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
                   ),

@@ -4,9 +4,20 @@ import 'package:elbess/features/profile/presentation/profileview.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-class EditProfile extends StatelessWidget {
+class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
 
+  @override
+  State<EditProfile> createState() => _EditProfileState();
+}
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController familyNameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+  final TextEditingController adressController = TextEditingController();
+  final TextEditingController genderController = TextEditingController();
+class _EditProfileState extends State<EditProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,17 +96,17 @@ class EditProfile extends StatelessWidget {
                 ),
               ),
               const Gap(28),
-              FillTextField(hint: "Full name"),
+              FillTextField(hint: "Full name", controller: nameController),
               Gap(20),
-              FillTextField(hint: "Family name"),
+              FillTextField(hint: "Family name", controller: familyNameController),
               Gap(20),
-              FillTextField(hint: "Phone number"),
+              FillTextField(hint: "Phone number", controller: phoneController),
               Gap(20),
-              FillTextField(hint: "City"),
+              FillTextField(hint: "City", controller: cityController),
               Gap(20),
-              FillTextField(hint: "Adress"),
+              FillTextField(hint: "Adress", controller: adressController),
               Gap(20),
-              FillTextField(hint: "Gender"),
+              FillTextField(hint: "Gender", controller: genderController),
               const Gap(60),
               CustomButton(text: "Save changes", onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) =>  Profileview()));

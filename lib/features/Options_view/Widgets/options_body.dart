@@ -1,6 +1,4 @@
-import 'package:elbess/core/constants/button.dart';
 import 'package:elbess/core/constants/colors.dart';
-import 'package:elbess/core/constants/optionsbtn.dart';
 
 import 'package:elbess/features/Auth/Presentation/Pages/login_view.dart';
 import 'package:elbess/features/Auth/Presentation/Pages/signup_view.dart';
@@ -18,79 +16,184 @@ class OptionsBody extends StatefulWidget {
 class _OptionsBodyState extends State<OptionsBody> {
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF6F2EE),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Gap(160),
-              SvgPicture.asset('assets/Images/appLogo/Logo.svg',height:40),
-              Gap(40),
-              Text("Let’s you in",style: TextStyle(fontSize: 30,fontFamily: "bold"),),
-           Gap(30),
-            OptionsBtn(continuee: "Continue with facebook", image: "assets/Images/socialMediaLogos/facebook.png"),
-                  Gap(15),
-                   OptionsBtn(continuee: "Continue with google", image: "assets/Images/socialMediaLogos/google.png"),
-                   Gap(15),
-               OptionsBtn(continuee: "Continue with apple", image: "assets/Images/socialMediaLogos/apple-logo.png"),
-            Gap(60),
-            Row(
+        child: Stack(
           children: [
-            Expanded(
-              child: Divider(
-                color: Color(0xFFD4D4D4),
-                thickness: 1,
+            Positioned(
+              top: -130,
+              right: -90,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [Color(0xFFFFE4D4), Color(0x00FFE4D4)],
+                  ),
+                ),
               ),
             ),
-            Gap(12),
-            Text(
-              'Or with',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 12,
-                fontFamily: 'semi',
+            Positioned(
+              bottom: -140,
+              left: -90,
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [Color(0xFFFFDCC8), Color(0x00FFDCC8)],
+                  ),
+                ),
               ),
             ),
-            Gap(12),
-            Expanded(
-              child: Divider(
-                color: Color(0xFFD4D4D4),
-                thickness: 1,
+            SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: screenHeight - 40),
+                child: Column(
+                  children: [
+                    const Gap(56),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.72),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: const Color(0xFFECE7E2),
+                        ),
+                      ),
+                      child: SvgPicture.asset(
+                        'assets/Images/appLogo/Logo.svg',
+                        height: 36,
+                      ),
+                    ),
+                    const Gap(28),
+                    const Text(
+                      'Let\'s get you in',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 34,
+                        fontFamily: 'bold',
+                        color: Color(0xFF1F1B19),
+                        height: 1.1,
+                      ),
+                    ),
+                    const Gap(8),
+                    const Text(
+                      'Access your style picks, saved favorites, and quick checkout.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: 'medium',
+                        color: Color(0xFF7D7874),
+                      ),
+                    ),
+                    const Gap(28),
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(26),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x15000000),
+                            blurRadius: 30,
+                            offset: Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Choose how you want to continue',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color(0xFF908A86),
+                              fontSize: 13,
+                              fontFamily: 'medium',
+                            ),
+                          ),
+                          const Gap(16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                minimumSize: const Size(double.infinity, 56),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => LoginView(),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'Log in',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontFamily: 'semi',
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Gap(12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: AppColors.primary,
+                                elevation: 0,
+                                minimumSize: const Size(double.infinity, 56),
+                                side: BorderSide(
+                                  color: AppColors.primary,
+                                  width: 1.2,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SignupView(),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'Sign up',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontFamily: 'semi',
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Gap(24),
+                  ],
+                ),
               ),
             ),
           ],
-        ),
-           Gap(30),
-            Padding(padding: EdgeInsets.symmetric(horizontal: 20),
-            child: CustomButton(text: "Log in with password", onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context)=>LoginView()));
-            }),),
-        Gap(20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("Don't have an account?",style: TextStyle(fontSize: 12,fontFamily: "medium",color: Colors.grey),),
-              GestureDetector(
-                onTap: (){
-                  setState(() {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>SignupView()));
-                  });
-                },
-                child: Text(" Sign up",style: TextStyle(fontSize: 12,fontFamily: "medium",color: AppColors.primary),))
-            
-            ],
-          )
-            ],
-              ),
-            ),
-          ),
         ),
       )
     );

@@ -1,9 +1,12 @@
 import 'package:elbess/core/constants/colors.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
 class CheckoutBody extends StatefulWidget {
-  const CheckoutBody({super.key});
+  const CheckoutBody({super.key, this.orderPayload});
+
+  final Map<String, dynamic>? orderPayload;
 
   @override
   State<CheckoutBody> createState() => _CheckoutBodyState();
@@ -11,6 +14,14 @@ class CheckoutBody extends StatefulWidget {
 
 class _CheckoutBodyState extends State<CheckoutBody> {
   int _selectedAddress = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.orderPayload != null) {
+      debugPrint('Checkout payload: ${widget.orderPayload}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,38 +1,194 @@
 import 'package:elbess/core/constants/colors.dart';
+import 'package:elbess/core/utils/pref_helpers.dart';
 import 'package:elbess/features/checkout/presentation/checkout_view.dart';
+import 'package:elbess/features/home/data/product_model.dart';
+import 'package:elbess/features/home/data/store_model.dart';
+import 'package:elbess/features/productdetail/data/details_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
 class ProductDetailBody extends StatefulWidget {
-  const ProductDetailBody({super.key});
+  const ProductDetailBody({super.key, required this.productId, this.initialProduct});
+  final String productId;
+  final ProductModel? initialProduct;
 
   @override
   State<ProductDetailBody> createState() => _ProductDetailBodyState();
 }
-String selectedSize = "S";
-  int selectedColorIndex = 0;
-  PageController _pageController = PageController();
-int currentIndex = 0;
-
-  final List<String> sizes = ["S", "M", "L", "XL"];
-  final List<Color> colors = [
-    Colors.blue,
-    const Color(0xFF8B5A3C), // brown
-    Colors.grey.shade400,
-  ];
-  List<String> images = [
-  "assets/Images/clothes/item3.png",
-  "assets/Images/clothes/item4.png",
-  "assets/Images/clothes/item5.png",
-];
 
 class _ProductDetailBodyState extends State<ProductDetailBody> {
+  final DetailsRepo detailsRepo = DetailsRepo();
+  final PageController _pageController = PageController();
+  final List<String> sizes = ["S", "M", "L", "XL"];
+
+  ProductModel? product;
+  StoreModel? store;
+  bool isLoading = false;
+  int currentIndex = 0;
+  String selectedSize = "S";
+  bool _isFavorite = false;
+
+  Future<void> _loadFavoriteState() async {
+    final productId = (product?.id ?? widget.productId).trim();
+    if (productId.isEmpty) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isFavorite = false;
+      });
+      return;
+    }
+
+    final favorite = await PrefHelpers.isFavoriteProduct(productId);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isFavorite = favorite;
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    final productId = (product?.id ?? widget.productId).trim();
+    if (productId.isEmpty) {
+      return;
+    }
+
+    final isFavoriteNow = await PrefHelpers.toggleFavoriteProductId(productId);
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isFavorite = isFavoriteNow;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isFavoriteNow ? 'Added to favorites' : 'Removed from favorites',
+        ),
+      ),
+    );
+  }
+
+  Future<void> getProductDetails() async {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final details = await detailsRepo.getProductDetails(widget.productId);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        if (details != null) {
+          product = details;
+        }
+        isLoading = false;
+      });
+
+      await _loadFavoriteState();
+
+      final storeId = (details ?? product)?.store?.id ?? '';
+      if (storeId.isNotEmpty) {
+        await getStoreDetails(storeId);
+      } else {
+        setState(() {
+          store = StoreModel(
+            id: '',
+            name: 'Unknown store',
+            location: '',
+            description: '',
+            activeProducts: 0,
+            rating: 0,
+            revenus: 0,
+            shippingTime: 0,
+            products: <ProductModel>[],
+            totalOrders: 0,
+            address: '',
+            password: '',
+            isEmailVerified: false,
+            logo: '',
+            rates: <StoreRateModel>[],
+            version: 0,
+          );
+        });
+      }
+
+      print('Product Details: $details');
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        isLoading = false;
+      });
+      print('Error fetching product details: $e');
+    }
+  }
+
+  Future<void> getStoreDetails(String storeId) async {
+    try {
+      final details = await detailsRepo.getStoreDetails(storeId);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        store = details;
+      });
+      print('Store Details: $details');
+    } catch (e) {
+      print('Error fetching store details: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    product = widget.initialProduct;
+    _loadFavoriteState();
+    getProductDetails();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+  
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context);
+    final safeProduct = product;
+    final safeStore = store;
+    final storeName = (safeStore?.name.trim().isNotEmpty ?? false)
+        ? safeStore!.name
+        : 'Unknown store';
+    final storeLogo = safeStore?.logo.trim() ?? '';
 
     return Scaffold(
-      body: Column(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : safeProduct == null
+              ? const Center(
+                  child: Text(
+                    'Product details are not available.',
+                    style: TextStyle(fontFamily: 'semi', color: Colors.grey),
+                  ),
+                )
+              : Column(
         children: [
           
             Stack(
@@ -50,7 +206,7 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
             Expanded(
         child: PageView.builder(
           controller: _pageController,
-          itemCount: images.length,
+          itemCount: 1,
           onPageChanged: (index) {
             setState(() {
               currentIndex = index;
@@ -58,22 +214,29 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
           },
           itemBuilder: (context, index) {
             return Center(
-              child: Image.asset(
-                images[index],
-                height: MediaQuery.sizeOf(context).height * 0.6,
-                width: MediaQuery.sizeOf(context).width * 0.6,
-                fit: BoxFit.contain,
-              ),
+              child: safeProduct.imageUrl.trim().isEmpty
+                  ? const Icon(Icons.image_not_supported_outlined, size: 72, color: Colors.grey)
+                  : Image.network(
+                      safeProduct.imageUrl,
+                      height: MediaQuery.sizeOf(context).height * 0.6,
+                      width: MediaQuery.sizeOf(context).width * 0.6,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.image_not_supported_outlined,
+                        size: 72,
+                        color: Colors.grey,
+                      ),
+                    ),
             );
           },
         ),
             ),
         
-            /// 🔵 Dots
+           
             Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(
-          images.length,
+          1,
           (index) => AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
@@ -109,7 +272,13 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                         "Product Details",
                         style: TextStyle(fontFamily: "semi", color: Colors.black, fontSize: 22),
                       ),
-                    Icon(Icons.favorite_border, color: Colors.black),
+                    GestureDetector(
+                      onTap: _toggleFavorite,
+                      child: Icon(
+                        _isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: _isFavorite ? Colors.red : Colors.black,
+                      ),
+                    ),
                   ],
                 ),)
                 ],
@@ -135,9 +304,25 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                       children: [
         
                     Text(
-                      "StepX",style: TextStyle(fontFamily: "bold", color: Colors.black, fontSize: 12),
+                      storeName,
+                      style: TextStyle(fontFamily: "bold", color: Colors.black, fontSize: 12),
                     ),
-                     Image.asset("assets/Images/stores/store1.png", height: MediaQuery.sizeOf(context).height * 0.04),
+                     const Gap(6),
+                     (storeLogo.isNotEmpty)
+                         ? Image.network(
+                             storeLogo,
+                             height: MediaQuery.sizeOf(context).height * 0.04,
+                             errorBuilder: (_, __, ___) => const Icon(
+                               Icons.storefront_outlined,
+                               size: 18,
+                               color: Colors.grey,
+                             ),
+                           )
+                         : const Icon(
+                             Icons.storefront_outlined,
+                             size: 18,
+                             color: Colors.grey,
+                           ),
                       ],
                     ),
                    Row(
@@ -150,13 +335,13 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                   ],
                 ),
                 Gap(10),
-             Text("Relaxed Fit Oversized T-shirt", style: TextStyle(fontFamily: "bold", color: Colors.black, fontSize: 20)),
+               Text(safeProduct.name.isNotEmpty ? safeProduct.name : 'Product', style: TextStyle(fontFamily: "bold", color: Colors.black, fontSize: 20)),
              const SizedBox(height: 10,),
              
              
-             Text("420.00 dz", style: TextStyle(fontFamily: "bold", color: AppColors.primary, fontSize: 18)),
+               Text("\$${safeProduct.price.toStringAsFixed(2)}", style: TextStyle(fontFamily: "bold", color: AppColors.primary, fontSize: 18)),
              Gap(10),
-             Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec auctor, nisl eget ultricies lacinia, nunc nisl aliquam nisl, eget aliquam nunc nisl eget nunc. Donec auctor, nisl eget ultricies lacinia, nunc nisl aliquam nisl, eget aliquam nunc nisl eget nunc.", style: TextStyle(fontFamily: "semi", color: Colors.grey, fontSize: 12)),
+               Text(safeProduct.description.isNotEmpty ? safeProduct.description : 'No description available.', style: TextStyle(fontFamily: "semi", color: Colors.grey, fontSize: 12)),
          Gap(16),
            Container(
              
@@ -218,44 +403,6 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                 ],
               ),
              SizedBox(height: 12),
-          Row(
-                children: [
-                  const Text(
-                    "Color ",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Row(
-                    children: List.generate(
-                      colors.length,
-                      (index) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedColorIndex = index;
-                            });
-                          },
-                          child: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: colors[index],
-                              border: selectedColorIndex == index
-                                  ? Border.all(color: Colors.black, width: 2)
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
              
             ],
           ),
@@ -263,20 +410,43 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
           const Spacer(),
           Row(
             children: [
-             Container(
-              width: screenSize.width * 0.43,
-              height: screenSize.height * 0.05,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: AppColors.primary, width: 1.5),
-              ),
-              child: Center(
-                child: Text(
-                  "Add to Cart",
-                  style: TextStyle(fontFamily: "semi", color: AppColors.primary, fontSize: 16),
+             GestureDetector(
+              onTap: () async {
+                final item = <String, dynamic>{
+                  'productId': safeProduct.id,
+                  'name': safeProduct.name,
+                  'imageUrl': safeProduct.imageUrl,
+                  'price': safeProduct.price,
+                  'size': selectedSize,
+                  'quantity': 1,
+                  'storeName': storeName,
+                };
+
+                await PrefHelpers.addCartItem(item);
+
+                if (!mounted) {
+                  return;
+                }
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Added to cart')),
+                );
+              },
+              child: Container(
+                width: screenSize.width * 0.43,
+                height: screenSize.height * 0.05,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: AppColors.primary, width: 1.5),
                 ),
-              ),
+                child: Center(
+                  child: Text(
+                    "Add to Cart",
+                    style: TextStyle(fontFamily: "semi", color: AppColors.primary, fontSize: 16),
+                  ),
+                ),
+               ),
              ),
              Gap(5),
             GestureDetector(

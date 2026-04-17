@@ -103,11 +103,13 @@ class _CustomTextFieldState extends State<CustomTextField> {
 }
 
 class FillTextField extends StatelessWidget {
-  const FillTextField({super.key, required this.hint});
+  const FillTextField({super.key, required this.hint, required this.controller});
   final String hint;
+  final TextEditingController controller;
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      controller: controller,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(

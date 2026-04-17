@@ -23,9 +23,9 @@ const seedStore = async () => {
     // Create store using Mongoose (auto-applies defaults)
     const store = await storeModel.create({
       name: "Store B",
-      description: "This is Store B",
-      location: "Location B",
-      address: "Address B",
+      description: "Our store is where comfort meets culture featuring bold graphics, minimalist essentials,minimalist essentials, and exclusive drops from emerging and designer established brands. Whether you're building your everyday rotation ",
+      location: "Oran",
+      address: "Oran, Algeria",
       password: "passwordB", // Should hash this in real code
     });
 

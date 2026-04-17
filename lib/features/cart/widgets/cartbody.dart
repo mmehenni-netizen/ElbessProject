@@ -1,37 +1,72 @@
 import 'package:elbess/core/constants/colors.dart';
+import 'package:elbess/core/utils/pref_helpers.dart';
 import 'package:elbess/features/cart/widgets/cartitem.dart';
 import 'package:elbess/features/checkout/presentation/checkout_view.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-class Cartbody extends StatelessWidget {
-  Cartbody({super.key});
+class Cartbody extends StatefulWidget {
+  const Cartbody({super.key});
 
-  static const List<Map<String, dynamic>> _items = [
-    {
-      'img': 'assets/Images/clothes/item1.png',
-      'prdctname': 'SweetShirt',
-      'size': 'M',
-      'color': 'Black',
-      'price': 150.00,
-    },
-    {
-      'img': 'assets/Images/clothes/item2.png',
-      'prdctname': 'Baggy pant',
-      'size': 'L',
-      'color': 'white',
-      'price': 89.00,
-    },
-    {
-      'img': 'assets/Images/clothes/item3.png',
-      'prdctname': 'overSize Shirt',
-      'size': 'S',
-      'color': 'black',
-      'price': 156.00,
-    },
-  ];
+  @override
+  State<Cartbody> createState() => _CartbodyState();
+}
 
-  static const double _total = 370.00;
+class _CartbodyState extends State<Cartbody> {
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _items = <Map<String, dynamic>>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCart();
+  }
+
+  Future<void> _loadCart() async {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final items = await PrefHelpers.getCartItems();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _items = items;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _updateQuantity(int index, int quantity) async {
+    final item = _items[index];
+    final productId = (item['productId'] ?? '').toString();
+    final size = (item['size'] ?? '').toString();
+    await PrefHelpers.updateCartItemQuantity(productId, size, quantity);
+  }
+
+  Future<void> _removeItem(int index) async {
+    final item = _items[index];
+    final productId = (item['productId'] ?? '').toString();
+    final size = (item['size'] ?? '').toString();
+    await PrefHelpers.removeCartItem(productId, size);
+    await _loadCart();
+  }
+
+  double get _total {
+    double total = 0;
+    for (final item in _items) {
+      final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+      final quantity = (item['quantity'] as num?)?.toInt() ?? 1;
+      total += price * quantity;
+    }
+    return total;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,23 +83,38 @@ class Cartbody extends StatelessWidget {
             ),
             const Gap(15),
             Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: _items.length,
-                itemBuilder: (context, index) {
-                  final item = _items[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Cartitem(
-                      img: item['img'] as String,
-                      prdctname: item['prdctname'] as String,
-                      size: item['size'] as String,
-                      color: item['color'] as String,
-                      price: item['price'] as double,
-                    ),
-                  );
-                },
-              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _items.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'Your cart is empty',
+                            style: TextStyle(fontFamily: 'medium', color: Colors.grey),
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _loadCart,
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            itemCount: _items.length,
+                            itemBuilder: (context, index) {
+                              final item = _items[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 2),
+                                child: Cartitem(
+                                  img: (item['imageUrl'] ?? '').toString(),
+                                  prdctname: (item['name'] ?? 'Product').toString(),
+                                  size: (item['size'] ?? 'M').toString(),
+                                  color: (item['storeName'] ?? 'Store').toString(),
+                                  price: (item['price'] as num?)?.toDouble() ?? 0,
+                                  initialQuantity: (item['quantity'] as num?)?.toInt() ?? 1,
+                                  onDelete: () => _removeItem(index),
+                                  onQuantityChanged: (quantity) => _updateQuantity(index, quantity),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
             ),
             SafeArea(
               top: false,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/network/api_error.dart';
 import 'package:elbess/core/utils/app_snackbar.dart';
+import 'package:elbess/features/Auth/Presentation/Pages/fill_profile_view.dart';
 import 'package:elbess/features/Auth/data/auth_repo.dart';
 import 'package:elbess/root.dart';
 import 'package:flutter/material.dart';
@@ -79,7 +80,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
 			AppSnackBar.show(context, 'Email verified successfully');
 			Navigator.pushAndRemoveUntil(
 				context,
-				MaterialPageRoute(builder: (_) => const Root()),
+				MaterialPageRoute(builder: (_) => const FillProfileView()),
 				(route) => false,
 			);
 		} catch (e) {

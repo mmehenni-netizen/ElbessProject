@@ -142,7 +142,7 @@ class _StoreBodyState extends State<StoreBody> {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ProductDetailView()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailView(productId: "0")));
                     },
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 2),

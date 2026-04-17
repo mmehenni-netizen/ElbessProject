@@ -1,4 +1,5 @@
 import 'package:elbess/core/constants/colors.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -12,6 +13,7 @@ class Cartitem extends StatefulWidget {
     required this.price,
     this.initialQuantity = 1,
     this.onDelete,
+    this.onQuantityChanged,
   });
 
   final String img;
@@ -21,6 +23,7 @@ class Cartitem extends StatefulWidget {
   final double price;
   final int initialQuantity;
   final VoidCallback? onDelete;
+  final ValueChanged<int>? onQuantityChanged;
 
   @override
   State<Cartitem> createState() => _CartitemState();
@@ -28,6 +31,50 @@ class Cartitem extends StatefulWidget {
 
 class _CartitemState extends State<Cartitem> {
   late int quantity;
+
+  String _resolveImageUrl(String rawPath) {
+    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
+      return rawPath;
+    }
+
+    if (rawPath.startsWith('/')) {
+      final host = kIsWeb
+          ? 'http://localhost:5000'
+          : defaultTargetPlatform == TargetPlatform.android
+              ? 'http://10.0.2.2:5000'
+              : 'http://localhost:5000';
+      return '$host$rawPath';
+    }
+
+    return rawPath;
+  }
+
+  Widget _buildImage(String rawPath) {
+    final trimmed = rawPath.trim();
+    if (trimmed.isEmpty) {
+      return const Center(
+        child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+      );
+    }
+
+    if (trimmed.startsWith('assets/')) {
+      return Image.asset(
+        trimmed,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => const Center(
+          child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+        ),
+      );
+    }
+
+    return Image.network(
+      _resolveImageUrl(trimmed),
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => const Center(
+        child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -76,10 +123,7 @@ class _CartitemState extends State<Cartitem> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(18 * scale),
-                    child: Image.asset(
-                      widget.img,
-                      fit: BoxFit.contain,
-                    ),
+                    child: _buildImage(widget.img),
                   ),
                 ),
                 Gap(12 * scale),
@@ -96,15 +140,32 @@ class _CartitemState extends State<Cartitem> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              widget.prdctname,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 17 * scale,
-                                fontFamily: 'semi',
-                                color: Colors.black,
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    widget.prdctname,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 17 * scale,
+                                      fontFamily: 'semi',
+                                      color: Colors.black,
+                                    ),
+                                  ),
                               ),
+                                IconButton(
+                                  onPressed: widget.onDelete,
+                                  splashRadius: 18,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    size: 20 * scale,
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+                              ],
                             ),
                             SizedBox(height: 6 * scale),
                             Text(
@@ -147,6 +208,7 @@ class _CartitemState extends State<Cartitem> {
                                         setState(() {
                                           quantity--;
                                         });
+                                        widget.onQuantityChanged?.call(quantity);
                                       }
                                     },
                                   ),
@@ -178,6 +240,7 @@ class _CartitemState extends State<Cartitem> {
                                       setState(() {
                                         quantity++;
                                       });
+                                      widget.onQuantityChanged?.call(quantity);
                                     },
                                   ),
                                 ],

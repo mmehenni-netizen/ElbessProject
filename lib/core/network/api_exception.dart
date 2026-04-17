@@ -51,12 +51,6 @@ class ApiException {
           message: backendMessage ?? transportMessage ?? "Network error",
           success: backendSuccess,
         );
-
-      default:
-        return ApiError(
-          message: backendMessage ?? "Unexpected error",
-          success: backendSuccess,
-        );
     }
   }
 

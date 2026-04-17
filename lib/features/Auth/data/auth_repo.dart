@@ -4,6 +4,7 @@ import 'package:elbess/core/network/api_error.dart';
 import 'package:elbess/core/network/api_exception.dart';
 import 'package:elbess/core/network/api_service.dart';
 import 'package:elbess/core/utils/pref_helpers.dart';
+import 'package:elbess/features/Auth/data/profile_model.dart';
 import 'package:elbess/features/Auth/data/user_model.dart';
 
 class AuthRepo {
@@ -104,6 +105,38 @@ class AuthRepo {
     } on DioException catch (e) {
       throw ApiException.handleError(e);
     } catch (e) {
+      if (e is ApiError) {
+        throw e;
+      }
+      throw ApiError(message: e.toString());
+    }
+  }
+ 
+  Future<ProfileModel?> setProfile(String firstName, String lastName, String phone, DateTime? dateOfBirth, String address, String gender)async{
+    try{
+     final response=await apiService.post('/actions/set-profile',{
+      'firstName': firstName.trim(),
+      'lastName': lastName.trim(),
+      'phone': phone.trim(),
+      'dateOfBirth': ?dateOfBirth?.toIso8601String(),
+      'address': address.trim(),
+      'gender': gender.trim(),
+     });
+      if (response is ApiError) {
+          throw response;
+        }
+  
+        if (response is! Map<String, dynamic>) {
+          throw ApiError(message: 'Unexpected server response');
+        }
+  
+        if (response['success'] == true) {
+          return ProfileModel.fromJson( response);
+        }
+  
+        throw ApiError(message: response['message'] ?? 'An error occurred');
+
+    }catch(e){
       if (e is ApiError) {
         throw e;
       }

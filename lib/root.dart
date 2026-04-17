@@ -1,3 +1,4 @@
+import 'package:elbess/features/Categories/presentation/categoriesview.dart';
 import 'package:elbess/features/favorites/presentation/favoritesview.dart';
 import 'package:elbess/features/home/presentation/homeview.dart';
 import 'package:elbess/features/cart/presentation/cartview.dart';
@@ -19,26 +20,33 @@ class _RootState extends State<Root> {
   int currentScreen = 0;
   final List<IconData> _icons = [
     CupertinoIcons.house,
+    CupertinoIcons.square_grid_2x2,
     CupertinoIcons.cart,
     CupertinoIcons.location,
     CupertinoIcons.heart,
+    
   ];
   final List<IconData> _selectedIcons = [
     CupertinoIcons.house_fill,
+    CupertinoIcons.square_grid_2x2_fill,
     CupertinoIcons.cart_fill,
     CupertinoIcons.location_solid,
     CupertinoIcons.heart_fill,
+    
   ];
   final List<String> _labels = [
     'Home',
+    'Categories',
     'Cart',
     'Track',
     'Favorites',
+    
   ];
   @override
   void initState() {
     pages = [
       Homeview(),
+      Categoriesview(),
       Cartview(),
       Trackview(),
       Favoritesview(),

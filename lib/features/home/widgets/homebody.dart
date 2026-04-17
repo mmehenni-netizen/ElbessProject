@@ -1,6 +1,10 @@
 
 import 'package:elbess/core/constants/colors.dart';
+import 'package:elbess/core/utils/pref_helpers.dart';
 import 'package:elbess/features/Categories/widgets/categoriesbody.dart';
+import 'package:elbess/features/home/data/home_repo.dart';
+import 'package:elbess/features/home/data/product_model.dart';
+import 'package:elbess/features/home/data/store_model.dart';
 import 'package:elbess/features/home/widgets/category_card.dart';
 import 'package:elbess/features/home/widgets/item_card.dart';
 import 'package:elbess/features/home/widgets/slider.dart';
@@ -11,6 +15,7 @@ import 'package:elbess/features/store_page/presentation/store_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class Homebody extends StatefulWidget {
   const Homebody({super.key});
@@ -21,7 +26,111 @@ class Homebody extends StatefulWidget {
 
 class _HomebodyState extends State<Homebody> {
   int _selectedCategoryIndex = -1;
+  final HomeRepo _homeRepo = HomeRepo();
+  bool isLoading = false;
+  List<ProductModel>? products;
+  List<StoreModel>? stores;
+  Set<String> _favoriteProductIds = <String>{};
 
+  @override
+  void initState() {
+    super.initState();
+    _loadFavorites();
+    getProducts();
+    getStores();
+  }
+
+  Future<void> _loadFavorites() async {
+    final ids = await PrefHelpers.getFavoriteProductIds();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _favoriteProductIds = ids.toSet();
+    });
+  }
+
+  Future<void> _toggleFavorite(String productId) async {
+    final isFavoriteNow = await PrefHelpers.toggleFavoriteProductId(productId);
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      if (isFavoriteNow) {
+        _favoriteProductIds.add(productId);
+      } else {
+        _favoriteProductIds.remove(productId);
+      }
+    });
+  }
+
+  Future<void> getProducts() async {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final res = await _homeRepo.getProducts();
+      if (!mounted) {
+        return;
+      }
+
+        setState(() {
+          products = res;
+          isLoading = false;
+        });
+      print(products);
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        isLoading = false;
+      });
+      print("Error fetching products: $e");
+    }
+  }
+Future<void> getStores() async {
+  if (!mounted) {
+    return;
+  }
+
+  setState(() {
+    isLoading = true;
+  });
+
+  try {
+    final res = await _homeRepo.getStores();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      stores = res;
+      isLoading = false;
+    });
+    print(stores);
+  } catch (e) {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+    print("Error fetching stores: $e");
+  }
+}
+
+Future<void> refresh() async {
+  await Future.wait([getProducts(), getStores()]);
+}
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -36,193 +145,174 @@ class _HomebodyState extends State<Homebody> {
     final int trendGridCount = size.width >= 900 ? 4 : (isTablet ? 3 : 2);
 
     return Scaffold(
-      body:SingleChildScrollView(
-        child:  Column(
-        children: [
-          SizedBox(height: topSpace),
-       Padding(padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-       child:   Row(
-          
+      body: RefreshIndicator(
+        onRefresh: refresh,
+        child: Skeletonizer(
+          enabled: isLoading,
+          child: SingleChildScrollView(
+            child: Column(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Hi,",style: TextStyle(fontSize: headingFont, fontFamily: "semi",color: Colors.black),),
-                Row(
-                  children: [
-                    Text("Mohamed",style: TextStyle(fontSize: subHeadingFont, fontFamily: "semi",color: AppColors.primary),),
-                    Gap(4),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => Profileview()),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFFE6E6E6),
+            SizedBox(height: topSpace),
+         Padding(padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+         child:   Row(
+            
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Hi,",style: TextStyle(fontSize: headingFont, fontFamily: "semi",color: Colors.black),),
+                  Row(
+                    children: [
+                      Text("Mohamed",style: TextStyle(fontSize: subHeadingFont, fontFamily: "semi",color: AppColors.primary),),
+                      Gap(4),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => Profileview()),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFFE6E6E6),
+                          ),
+                          child:  Icon(CupertinoIcons.person, size: 16,color: AppColors.primary,),
                         ),
-                        child:  Icon(CupertinoIcons.person, size: 16,color: AppColors.primary,),
-                      ),
-                    )
-                  ],
-                )
-
+                      )
+                    ],
+                  )
+        
+                ],
+              ),
+              Spacer() ,
+        Container(
+        padding: EdgeInsets.all(isTablet ? 6 : 4),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+          border: Border.all(color: Colors.black, width: 1),
+        ),
+        child: Icon(
+          Icons.search,
+          color: Colors.black,
+          size: isTablet ? 22 : 18,
+        ),
+            ),
+          Gap(size.width * 0.02),
+          Icon(Icons.notifications_none_outlined,color: Colors.black,size: isTablet ? 30 : 25,)
+            ],
+        
+           ),
+         ),
+            const SizedBox(height: 8),
+            const OffersSlider(),
+            const SizedBox(height: 8),
+            //categories title
+         
+         
+           //categories items
+        
+          //store title
+        Gap(isTablet ? 24 : 20),
+         Padding(padding: EdgeInsets.symmetric(horizontal: sectionPadding),
+           child:  Row(
+              children: [
+        
+           Text("Stores",style: TextStyle(fontSize: sectionTitleFont, fontFamily: "semi",color: Colors.black),),
+                 Spacer(),
+          Text("see all",style: TextStyle(fontSize: captionFont, fontFamily: "medium",color: Colors.grey),),
+               
+               
               ],
             ),
-            Spacer() ,
-      Container(
-      padding: EdgeInsets.all(isTablet ? 6 : 4),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        border: Border.all(color: Colors.black, width: 1),
-      ),
-      child: Icon(
-        Icons.search,
-        color: Colors.black,
-        size: isTablet ? 22 : 18,
-      ),
-    ),
-        Gap(size.width * 0.02),
-        Icon(Icons.notifications_none_outlined,color: Colors.black,size: isTablet ? 30 : 25,)
-          ],
-
-         ),
-       ),
-          const SizedBox(height: 8),
-          const OffersSlider(),
-          const SizedBox(height: 8),
-          //categories title
-        Padding(padding: EdgeInsets.symmetric(horizontal: sectionPadding),
-         child:  Row(
-            children: [
-
-            Text("Categories",style: TextStyle(fontSize: sectionTitleFont, fontFamily: "semi",color: Colors.black),),
-               Spacer(),
-            GestureDetector(
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const Categoriesbody()),
-                );
-              },
-              child: Text("see all",style: TextStyle(fontSize: captionFont, fontFamily: "medium",color: Colors.grey),),
-            ),
-             
-             
-            ],
-          ),
-         
-         ),
-         SizedBox(height: isTablet ? 18 : 15),
-         //categories items
-       SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children:List.generate(5, (index){
-            return GestureDetector(
-              onTap: () async {
-                setState(() {
-                  _selectedCategoryIndex = index;
-                });
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const Categoriesbody()),
-                );
-                if (!mounted) {
-                  return;
-                }
-                setState(() {
-                  _selectedCategoryIndex = -1;
-                });
-              },
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: isTablet ? 7 : 5),
-                child: CategoryCard(
-                  image: "assets/Images/categories/jacket2.png",
-                  name: "Jacket",
-                  isSelected: _selectedCategoryIndex == index,
-                ),
+           
+           ),
+        Gap(isTablet ? 14 : 10),
+         //store items
+          SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children:List.generate(
+              stores?.length ?? 0, (index){
+              return GestureDetector(
+                onTap: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => StoreView()));
+                },
+                child: Padding(padding: EdgeInsets.symmetric(horizontal: isTablet ? 4 : 5),
+              child:  StoreCard(
+                store_image: (stores?[index].logo.trim().isNotEmpty ?? false)
+                    ? stores![index].logo
+                    : "assets/Images/stores/store1.png",
+                store_name: (stores?[index].name.trim().isNotEmpty ?? false)
+                    ? stores![index].name
+                    : "Unknown store",
               ),
-            );
-          }),
-        )  ,
-        ),
-        //store title
-      Gap(isTablet ? 24 : 20),
-       Padding(padding: EdgeInsets.symmetric(horizontal: sectionPadding),
-         child:  Row(
-            children: [
-
-         Text("Stores",style: TextStyle(fontSize: sectionTitleFont, fontFamily: "semi",color: Colors.black),),
-               Spacer(),
-        Text("see all",style: TextStyle(fontSize: captionFont, fontFamily: "medium",color: Colors.grey),),
-             
-             
-            ],
+              ),
+              );
+        
+            }),
+          )  ,
           ),
+          Gap(isTablet ? 24 : 20),
+           Padding(padding: EdgeInsets.symmetric(horizontal: sectionPadding),
+           child:  Row(
+              children: [
+            Text("Trend items",style: TextStyle(fontSize: sectionTitleFont, fontFamily: "semi",color: Colors.black),),
+                 Spacer(),
+            Text("see all",style: TextStyle(fontSize: captionFont, fontFamily: "medium",color: Colors.grey),),
+               
+               
+              ],
+            ),
+           
+           ),
          
-         ),
-      Gap(isTablet ? 14 : 10),
-       //store items
-        SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children:List.generate(5, (index){
+        GridView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: trendGridCount,
+            crossAxisSpacing: isTablet ? 8 : 1,
+            mainAxisSpacing: isTablet ? 8 : 1,
+            childAspectRatio: isTablet ? 0.88 : 1,
+          ),
+          itemCount: products?.length ?? 0, 
+          itemBuilder: (context, index) {
+            if (products == null || index >= products!.length) {
+              return SizedBox.shrink();
+            }
             return GestureDetector(
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => StoreView()));
-              },
-              child: Padding(padding: EdgeInsets.symmetric(horizontal: isTablet ? 4 : 2),
-            child:  StoreCard(store_image: "assets/Images/stores/store2.png", store_name: "Stepx",),
+        onTap: (){
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProductDetailView(
+                productId: products![index].id,
+                initialProduct: products![index],
+              ),
+            ),
+          );
+        },
+        child: Padding(padding: EdgeInsets.symmetric(horizontal: isTablet ? 8 : 6),
+            child: ItemCard(
+              imagePath: products![index].imageUrl,
+             storeName: products![index].store?.name ?? '',
+              itemName: products![index].name, 
+              price: products![index].price.toStringAsFixed(2),
+               rating: products![index].rating.toString(), 
+            isFavorite: _favoriteProductIds.contains(products![index].id),
+            onFavoriteTap: () => _toggleFavorite(products![index].id),
+            ),
             ),
             );
-
-          }),
-        )  ,
+          },
         ),
-  Gap(isTablet ? 24 : 20),
-   Padding(padding: EdgeInsets.symmetric(horizontal: sectionPadding),
-         child:  Row(
-            children: [
-          Text("Trend items",style: TextStyle(fontSize: sectionTitleFont, fontFamily: "semi",color: Colors.black),),
-               Spacer(),
-          Text("see all",style: TextStyle(fontSize: captionFont, fontFamily: "medium",color: Colors.grey),),
-             
-             
-            ],
-          ),
-         
-         ),
-       
-      GridView.builder(
-  shrinkWrap: true,
-  physics: NeverScrollableScrollPhysics(),
-  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-    crossAxisCount: trendGridCount,
-    crossAxisSpacing: isTablet ? 8 : 1,
-    mainAxisSpacing: isTablet ? 8 : 1,
-    childAspectRatio: isTablet ? 0.88 : 1,
-  ),
-  itemCount: 3, 
-  itemBuilder: (context, index) {
-    return GestureDetector(
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailView()));
-      },
-      child: Padding(padding: EdgeInsets.symmetric(horizontal: isTablet ? 8 : 6),
-    child: ItemCard(imagePath: 'assets/Images/clothes/item${index + 1}.png', storeName: 'Boutique Parma', itemName: 'Sweatshirt', price: '480.00Dz', rating: '4.5', isFavorite: false,),
-    ),
-    );
-  },
-)
-        ],
+          ],
+        ),
+        ),
       ),
-      )
-    );
+    ));
   }
 }

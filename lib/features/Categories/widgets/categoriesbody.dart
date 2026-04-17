@@ -1,4 +1,6 @@
 
+import 'package:elbess/features/home/data/home_repo.dart';
+import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/features/home/widgets/item_card.dart';
 import 'package:elbess/features/productdetail/presentation/product_detail_view.dart';
 import 'package:flutter/material.dart';
@@ -21,48 +23,76 @@ class _CategoriesbodyState extends State<Categoriesbody> {
     {'key': 'sweeters', 'title': 'SWEETERS', 'image': 'assets/Images/categories2/sweeterscat.avif'},
   ];
 
-  final Map<String, List<Map<String, String>>> _productsByCategory = {
-    'tshirt': [
-      {'image': 'assets/Images/clothes/item1.png', 'store': 'Urban Basic', 'name': 'Classic T-shirt', 'price': '39.00Dz', 'rating': '4.5'},
-      {'image': 'assets/Images/clothes/item4.png', 'store': 'Street Side', 'name': 'Relaxed Tee', 'price': '42.00Dz', 'rating': '4.4'},
-      {'image': 'assets/Images/clothes/item3.png', 'store': 'New Mood', 'name': 'Graphic Tee', 'price': '45.00Dz', 'rating': '4.6'},
-    ],
-    'hoddies': [
-      {'image': 'assets/Images/clothes/item2.png', 'store': 'Warm Up', 'name': 'Soft Hoodie', 'price': '79.00Dz', 'rating': '4.8'},
-      {'image': 'assets/Images/clothes/item1.png', 'store': 'Urban Basic', 'name': 'Zip Hoodie', 'price': '85.00Dz', 'rating': '4.5'},
-      {'image': 'assets/Images/clothes/item5.png', 'store': 'Move Co', 'name': 'Oversize Hoodie', 'price': '88.00Dz', 'rating': '4.7'},
-    ],
-    'shoes': [
-      {'image': 'assets/Images/clothes/item3.png', 'store': 'Foot Lab', 'name': 'Running Shoes', 'price': '129.00Dz', 'rating': '4.7'},
-      {'image': 'assets/Images/clothes/item4.png', 'store': 'Street Step', 'name': 'Daily Sneakers', 'price': '110.00Dz', 'rating': '4.4'},
-      {'image': 'assets/Images/clothes/item2.png', 'store': 'Step One', 'name': 'Canvas Shoes', 'price': '95.00Dz', 'rating': '4.3'},
-    ],
-    'pants': [
-      {'image': 'assets/Images/clothes/item2.png', 'store': 'Core Fit', 'name': 'Straight Pants', 'price': '70.00Dz', 'rating': '4.5'},
-      {'image': 'assets/Images/clothes/item4.png', 'store': 'Modern Fit', 'name': 'Cargo Pants', 'price': '82.00Dz', 'rating': '4.6'},
-      {'image': 'assets/Images/clothes/item1.png', 'store': 'Daily Wear', 'name': 'Wide Pants', 'price': '77.00Dz', 'rating': '4.4'},
-    ],
-    'jackets': [
-      {'image': 'assets/Images/categories/jacket.png', 'store': 'Elbess Signature', 'name': 'Linen Jacket', 'price': '149.00Dz', 'rating': '4.8'},
-      {'image': 'assets/Images/categories/jacket2.png', 'store': 'Elbess Studio', 'name': 'Light Jacket', 'price': '139.00Dz', 'rating': '4.7'},
-      {'image': 'assets/Images/clothes/item5.png', 'store': 'Layer Up', 'name': 'Casual Jacket', 'price': '132.00Dz', 'rating': '4.5'},
-    ],
-    'sweeters': [
-      {'image': 'assets/Images/clothes/item5.png', 'store': 'Warm Core', 'name': 'Wool Sweeter', 'price': '99.00Dz', 'rating': '4.6'},
-      {'image': 'assets/Images/clothes/item1.png', 'store': 'Daily Knit', 'name': 'Soft Sweeter', 'price': '89.00Dz', 'rating': '4.4'},
-      {'image': 'assets/Images/clothes/item2.png', 'store': 'Comfy Line', 'name': 'Basic Sweeter', 'price': '84.00Dz', 'rating': '4.5'},
-    ],
-  };
 
-  List<Map<String, String>> _safeProductsForKey(String key) {
-    final raw = _productsByCategory[key];
-    if (raw == null) {
-      return const [];
+  final HomeRepo _homeRepo = HomeRepo();
+  List<ProductModel> products = <ProductModel>[];
+  bool isLoading = true;
+
+  String _normalizeCategory(String value) {
+    return value.toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
+  }
+
+  Set<String> _aliasesForCategory(String categoryKey) {
+    final key = _normalizeCategory(categoryKey);
+
+    switch (key) {
+      case 'hoddies':
+      case 'hoodies':
+      case 'hoodie':
+        return <String>{'hoddies', 'hoodies', 'hoodie'};
+      case 'sweeters':
+      case 'sweaters':
+      case 'sweater':
+        return <String>{'sweeters', 'sweaters', 'sweater'};
+      default:
+        return <String>{key};
+    }
+  }
+
+  List<ProductModel> _productsByCategory(String categoryKey) {
+    final aliases = _aliasesForCategory(categoryKey);
+    return products.where((product) {
+      final category = _normalizeCategory(product.category);
+      return aliases.contains(category);
+    }).toList();
+  }
+
+  Future<void> getProducts() async {
+    if (!mounted) {
+      return;
     }
 
-    return raw
-        .map((product) => Map<String, String>.from(product))
-        .toList(growable: false);
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final res = await _homeRepo.getProducts();
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        products = res;
+        isLoading = false;
+      });
+      print(products);
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        isLoading = false;
+      });
+      print("Error fetching products: $e");
+    }
+  }
+
+  @override
+  void initState() {
+    getProducts();
+    super.initState();
   }
 
   @override
@@ -75,7 +105,13 @@ class _CategoriesbodyState extends State<Categoriesbody> {
     final double titleFont = isTablet ? 30 : 26;
 
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.white, elevation: 0),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        shadowColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
@@ -122,7 +158,7 @@ class _CategoriesbodyState extends State<Categoriesbody> {
                 ),
                 itemBuilder: (context, index) {
                   final category = _categories[index];
-                  final products = _safeProductsForKey(category['key']!);
+                  final categoryProducts = _productsByCategory(category['key'] ?? '');
 
                   return GestureDetector(
                     onTap: () {
@@ -131,7 +167,7 @@ class _CategoriesbodyState extends State<Categoriesbody> {
                         MaterialPageRoute(
                           builder: (_) => CategoryProductsPage(
                             categoryTitle: category['title']!,
-                            products: products,
+                            products: categoryProducts,
                           ),
                         ),
                       );
@@ -195,7 +231,7 @@ class CategoryProductsPage extends StatelessWidget {
   });
 
   final String categoryTitle;
-  final List<Map<String, String>> products;
+  final List<ProductModel> products;
 
   @override
   Widget build(BuildContext context) {
@@ -207,6 +243,9 @@ class CategoryProductsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        shadowColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         elevation: 0,
         title: Text(
           categoryTitle,
@@ -239,16 +278,19 @@ class CategoryProductsPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const ProductDetailView(),
+                        builder: (_) => ProductDetailView(
+                          productId: product.id,
+                          initialProduct: product,
+                        ),
                       ),
                     );
                   },
                   child: ItemCard(
-                    imagePath: product['image'] ?? '',
-                    storeName: product['store'] ?? '',
-                    itemName: product['name'] ?? '',
-                    price: product['price'] ?? '',
-                    rating: product['rating'] ?? '',
+                    imagePath: product.imageUrl,
+                    storeName: product.store?.name ?? '',
+                    itemName: product.name,
+                    price: product.price.toStringAsFixed(2),
+                    rating: product.rating.toString(),
                     isFavorite: false,
                   ),
                 );

@@ -16,12 +16,27 @@ class Signupbody extends StatefulWidget {
   State<Signupbody> createState() => _SignupbodyState();
 }
 class _SignupbodyState extends State<Signupbody> {
-    final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController emailController = TextEditingController();
-  late TextEditingController usernameController = TextEditingController(); 
+  late TextEditingController usernameController = TextEditingController();
   late TextEditingController passwordController = TextEditingController();
   AuthRepo authRepo = AuthRepo();
   bool isLoading = false;
+
+  String? _validatePassword(String password) {
+    if (password.length <= 6) {
+      return 'Password must be more than 6 characters';
+    }
+
+    final hasLetter = RegExp(r'[A-Za-z]').hasMatch(password);
+    final hasNumber = RegExp(r'\d').hasMatch(password);
+
+    if (!hasLetter || !hasNumber) {
+      return 'Password must include at least one letter and one number';
+    }
+
+    return null;
+  }
 
   bool _isNonBlockingEmailSendFailure(String message) {
     final lower = message.toLowerCase();
@@ -32,47 +47,59 @@ class _SignupbodyState extends State<Signupbody> {
  
 
   Future<void> signup() async {
-   if(_formKey.currentState!.validate()){
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      await authRepo.signup(usernameController.text, emailController.text, passwordController.text);
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => VerifyEmailView(email: emailController.text.trim()),
-        ),
-      );
-    } catch (e) {
-      
-      String errorMessage = 'An error occurred during signup.';
-      if (e is ApiError) {
-        errorMessage = e.message;
+    if (_formKey.currentState!.validate()) {
+      final passwordError = _validatePassword(passwordController.text.trim());
+      if (passwordError != null) {
+        AppSnackBar.show(context, passwordError);
+        return;
+      }
 
-        if (_isNonBlockingEmailSendFailure(errorMessage)) {
-          if (!mounted) return;
-          AppSnackBar.show(
-            context,
-            'Account created, but verification email was not sent due to provider limits. Try again later.',
-          );
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => VerifyEmailView(email: emailController.text.trim()),
-            ),
-          );
-          return;
+      setState(() {
+        isLoading = true;
+      });
+
+      try {
+        await authRepo.signup(
+          usernameController.text,
+          emailController.text,
+          passwordController.text,
+        );
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VerifyEmailView(email: emailController.text.trim()),
+          ),
+        );
+      } catch (e) {
+        String errorMessage = 'An error occurred during signup.';
+        if (e is ApiError) {
+          errorMessage = e.message;
+
+          if (_isNonBlockingEmailSendFailure(errorMessage)) {
+            if (!mounted) return;
+            AppSnackBar.show(
+              context,
+              'Account created, but verification email was not sent due to provider limits. Try again later.',
+            );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VerifyEmailView(email: emailController.text.trim()),
+              ),
+            );
+            return;
+          }
+        }
+        AppSnackBar.show(context, errorMessage);
+      } finally {
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
         }
       }
-      AppSnackBar.show(context, errorMessage);
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
-   }
   }
   @override
   Widget build(BuildContext context) {
