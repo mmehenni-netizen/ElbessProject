@@ -60,10 +60,12 @@ const ProductSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Store",
   },
-  imageUrl: {
-    type: String,
-    default: "default-product-image.jpg",
-  },
+  imageUrl: [
+    {
+      type: String,
+      default: "",
+    }
+  ],
   category: {
     type: String,
     required: true,
