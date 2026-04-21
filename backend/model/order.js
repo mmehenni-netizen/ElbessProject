@@ -26,7 +26,7 @@ const orderSchema = new Schema({
     type: Number,
     required: true,
   },
-  rice: {
+  price: {
     type: Number,
     default: 0,
   },
