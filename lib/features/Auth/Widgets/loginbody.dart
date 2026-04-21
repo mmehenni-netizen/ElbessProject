@@ -24,39 +24,50 @@ class _LoginbodyState extends State<Loginbody> {
   bool isLoading = false;
 
   Future<void> login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        isLoading = true;
-      });
+    if (isLoading) {
+      return;
+    }
 
-      try {
-        await authRepo.login(emailController.text, passwordController.text);
-        if (!mounted) {
-          return;
-        }
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const Root()),
-          (route) => false,
-        );
-      } catch (e) {
-        String errorMessage = 'An error occurred during login.';
-        if (e is ApiError) {
-          errorMessage = e.message;
-        }
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) {
+      return;
+    }
 
-        if (!mounted) {
-          return;
-        }
-        AppSnackBar.show(context, errorMessage);
-      } finally {
-        if (!mounted) {
-          return;
-        }
-        setState(() {
-          isLoading = false;
-        });
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await authRepo.login(emailController.text.trim(), passwordController.text);
+      if (!mounted) {
+        return;
       }
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const Root()),
+        (route) => false,
+      );
+    } catch (e) {
+      String errorMessage = 'An error occurred during login.';
+      if (e is ApiError) {
+        errorMessage = e.message;
+      }
+
+      if (!mounted) {
+        return;
+      }
+      AppSnackBar.show(context, errorMessage);
+    } finally {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 

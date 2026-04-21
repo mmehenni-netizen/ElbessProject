@@ -18,7 +18,7 @@ Future<dynamic> get(String endpoint)async{
 
 
 
-Future<dynamic> post(String endpoint, Map<dynamic,String> body)async{
+Future<dynamic> post(String endpoint, dynamic body)async{
  try{
  final response=await _dioClient.dio.post(endpoint,data : body);
   return response.data;
@@ -29,9 +29,7 @@ Future<dynamic> post(String endpoint, Map<dynamic,String> body)async{
  }
 }
 
-
-
-Future<dynamic> put(String endpoint, Map<dynamic,String> body)async{
+Future<dynamic> put(String endpoint, dynamic body)async{
  try{
  final response=await _dioClient.dio.put(endpoint,data: body);
   return response.data;
@@ -43,7 +41,7 @@ Future<dynamic> put(String endpoint, Map<dynamic,String> body)async{
 }
 
 
-Future<dynamic> delete(String endpoint, Map<dynamic,String> body)async{
+Future<dynamic> delete(String endpoint, dynamic body)async{
  try{
  final response=await _dioClient.dio.delete(endpoint,data: body);
   return response.data;

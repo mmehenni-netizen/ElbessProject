@@ -1,11 +1,10 @@
 
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/utils/pref_helpers.dart';
-import 'package:elbess/features/Categories/widgets/categoriesbody.dart';
+import 'package:elbess/features/favorites/presentation/favoritesview.dart';
 import 'package:elbess/features/home/data/home_repo.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/features/home/data/store_model.dart';
-import 'package:elbess/features/home/widgets/category_card.dart';
 import 'package:elbess/features/home/widgets/item_card.dart';
 import 'package:elbess/features/home/widgets/slider.dart';
 import 'package:elbess/features/home/widgets/store_card.dart';
@@ -25,7 +24,6 @@ class Homebody extends StatefulWidget {
 }
 
 class _HomebodyState extends State<Homebody> {
-  int _selectedCategoryIndex = -1;
   final HomeRepo _homeRepo = HomeRepo();
   bool isLoading = false;
   List<ProductModel>? products;
@@ -151,6 +149,7 @@ Future<void> refresh() async {
           enabled: isLoading,
           child: SingleChildScrollView(
             child: Column(
+              
           children: [
             SizedBox(height: topSpace),
          Padding(padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -187,19 +186,27 @@ Future<void> refresh() async {
                 ],
               ),
               Spacer() ,
-        Container(
-        padding: EdgeInsets.all(isTablet ? 6 : 4),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-          border: Border.all(color: Colors.black, width: 1),
-        ),
-        child: Icon(
-          Icons.search,
-          color: Colors.black,
-          size: isTablet ? 22 : 18,
-        ),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const Favoritesview()),
+            ).then((_) => _loadFavorites());
+          },
+          child: Container(
+            padding: EdgeInsets.all(isTablet ? 6 : 4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: Colors.black, width: 1),
             ),
+            child: Icon(
+              CupertinoIcons.heart,
+              color: Colors.black,
+              size: isTablet ? 22 : 18,
+            ),
+          ),
+        ),
           Gap(size.width * 0.02),
           Icon(Icons.notifications_none_outlined,color: Colors.black,size: isTablet ? 30 : 25,)
             ],
@@ -234,11 +241,20 @@ Future<void> refresh() async {
           SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
             children:List.generate(
               stores?.length ?? 0, (index){
               return GestureDetector(
                 onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => StoreView()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StoreView(
+                        storeId: stores![index].id,
+                        initialStore: stores![index],
+                      ),
+                    ),
+                  );
                 },
                 child: Padding(padding: EdgeInsets.symmetric(horizontal: isTablet ? 4 : 5),
               child:  StoreCard(

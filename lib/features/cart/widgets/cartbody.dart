@@ -4,6 +4,7 @@ import 'package:elbess/features/cart/widgets/cartitem.dart';
 import 'package:elbess/features/checkout/presentation/checkout_view.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class Cartbody extends StatefulWidget {
   const Cartbody({super.key});
@@ -70,6 +71,9 @@ class _CartbodyState extends State<Cartbody> {
 
   @override
   Widget build(BuildContext context) {
+    final visibleItems = _isLoading ? _placeholderItems : _items;
+    final visibleTotal = _isLoading ? 420.0 : _total;
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -83,22 +87,22 @@ class _CartbodyState extends State<Cartbody> {
             ),
             const Gap(15),
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _items.isEmpty
+              child: !_isLoading && _items.isEmpty
                       ? const Center(
                           child: Text(
                             'Your cart is empty',
                             style: TextStyle(fontFamily: 'medium', color: Colors.grey),
                           ),
                         )
-                      : RefreshIndicator(
+                      : Skeletonizer(
+                          enabled: _isLoading,
+                          child: RefreshIndicator(
                           onRefresh: _loadCart,
                           child: ListView.builder(
                             padding: EdgeInsets.zero,
-                            itemCount: _items.length,
+                            itemCount: visibleItems.length,
                             itemBuilder: (context, index) {
-                              final item = _items[index];
+                              final item = visibleItems[index];
                               return Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 2),
                                 child: Cartitem(
@@ -114,6 +118,7 @@ class _CartbodyState extends State<Cartbody> {
                               );
                             },
                           ),
+                        ),
                         ),
             ),
             SafeArea(
@@ -135,7 +140,7 @@ class _CartbodyState extends State<Cartbody> {
                           ),
                         ),
                         Text(
-                          '\$${_total.toStringAsFixed(2)}',
+                          '\$${visibleTotal.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontFamily: 'bold',
@@ -157,11 +162,16 @@ class _CartbodyState extends State<Cartbody> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        onPressed: () {
+                        onPressed: _isLoading || _items.isEmpty ? null : () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const CheckoutView(),
+                              builder: (_) => CheckoutView(
+                                orderPayload: <String, dynamic>{
+                                  'items': _items,
+                                  'fromCart': true,
+                                },
+                              ),
                             ),
                           );
                         },
@@ -189,4 +199,23 @@ class _CartbodyState extends State<Cartbody> {
       ),
     );
   }
+
+  List<Map<String, dynamic>> get _placeholderItems => <Map<String, dynamic>>[
+        <String, dynamic>{
+          'imageUrl': '',
+          'name': 'Oversized Hoodie',
+          'size': 'M',
+          'storeName': 'Elbess',
+          'price': 210.0,
+          'quantity': 1,
+        },
+        <String, dynamic>{
+          'imageUrl': '',
+          'name': 'Classic White Tee',
+          'size': 'L',
+          'storeName': 'Elbess',
+          'price': 210.0,
+          'quantity': 2,
+        },
+      ];
 }

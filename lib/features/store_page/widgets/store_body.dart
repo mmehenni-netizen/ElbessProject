@@ -1,166 +1,398 @@
 import 'package:elbess/core/constants/colors.dart';
+import 'package:elbess/features/home/data/product_model.dart';
+import 'package:elbess/features/home/data/store_model.dart';
 import 'package:elbess/features/home/widgets/item_card.dart';
 import 'package:elbess/features/productdetail/presentation/product_detail_view.dart';
-import 'package:elbess/features/store_page/widgets/cat_texts.dart';
-import 'package:elbess/features/store_page/widgets/static_card.dart';
+import 'package:elbess/features/store_page/data/store_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
 class StoreBody extends StatefulWidget {
-  const StoreBody({super.key});
+  const StoreBody({super.key, required this.storeId, this.initialStore});
+
+  final String storeId;
+  final StoreModel? initialStore;
 
   @override
   State<StoreBody> createState() => _StoreBodyState();
 }
 
 class _StoreBodyState extends State<StoreBody> {
-  final List<String> _categories = const [
-    'T-shirts',
-    'Hoodies',
-    'Shoes',
-    'Pants',
-    'jackets',
-    'sweetshirts',
+  final StoreRepo _storeRepo = StoreRepo();
 
-  ];
-
+  StoreModel? _store;
+  bool _isLoading = true;
   int _selectedCategoryIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    _store = widget.initialStore;
+    _loadStore();
+  }
+
+  Future<void> _loadStore() async {
+    final storeId = widget.storeId.trim();
+
+    if (storeId.isEmpty) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final store = await _storeRepo.getStoreById(storeId);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _store = store;
+      _isLoading = false;
+    });
+  }
+
+  String _resolveImageUrl(String rawPath) {
+    final trimmed = rawPath.trim();
+
+    if (trimmed.isEmpty) {
+      return '';
+    }
+
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+
+    if (trimmed.startsWith('assets/')) {
+      return trimmed;
+    }
+
+    if (trimmed.startsWith('/uploads/')) {
+      return 'http://10.0.2.2:5000$trimmed';
+    }
+
+    if (trimmed.startsWith('uploads/')) {
+      return 'http://10.0.2.2:5000/$trimmed';
+    }
+
+    return trimmed;
+  }
+
+  Widget _buildStoreLogo(String rawPath) {
+    final resolved = _resolveImageUrl(rawPath);
+    if (resolved.isEmpty) {
+      return const Icon(Icons.storefront_outlined, color: Colors.grey);
+    }
+
+    if (resolved.startsWith('assets/')) {
+      return Image.asset(
+        resolved,
+        width: 42,
+        height: 42,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.storefront_outlined, color: Colors.grey),
+      );
+    }
+
+    return Image.network(
+      resolved,
+      width: 42,
+      height: 42,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => const Icon(Icons.storefront_outlined, color: Colors.grey),
+    );
+  }
+
+  List<ProductModel> get _visibleProducts {
+    final products = _store?.products ?? <ProductModel>[];
+    if (products.isEmpty) {
+      return products;
+    }
+
+    final categories = _categories;
+    if (_selectedCategoryIndex <= 0 || _selectedCategoryIndex >= categories.length) {
+      return products;
+    }
+
+    final selectedCategory = categories[_selectedCategoryIndex];
+    return products
+        .where((product) => product.category.trim().toLowerCase() == selectedCategory.toLowerCase())
+        .toList();
+  }
+
+  List<String> get _categories {
+    final productCategories = (_store?.products ?? <ProductModel>[])
+        .map((product) => product.category.trim())
+        .where((category) => category.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    return <String>['All', ...productCategories];
+  }
+
+  void _openProduct(ProductModel product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailView(
+          productId: product.id,
+          initialProduct: product,
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.sizeOf(context);
+    final store = _store;
+    final products = _visibleProducts;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         leading: GestureDetector(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Icon(Icons.arrow_back_ios, color: Colors.black),
+          onTap: () => Navigator.pop(context),
+          child: const Icon(Icons.arrow_back_ios, color: Colors.black),
         ),
-        title: Text("Store", style: TextStyle(fontFamily: "semi", color: Colors.black, fontSize: 24)),
+        title: const Text(
+          'Store',
+          style: TextStyle(fontFamily: 'semi', color: Colors.black, fontSize: 24),
+        ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 15),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Gap(10),
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey[100],
-                    ),
-                    child: Image.asset("assets/Images/stores/store2.png", width: MediaQuery.of(context).size.width * 0.15),
-                  ),
-                  Gap(10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("StepX", style: TextStyle(fontFamily: "semi", color: Colors.black, fontSize: 18)),
-                      Gap(2),
-                      Text("📍Alger", style: TextStyle(fontFamily: "regular", color: Colors.black, fontSize: 10)),
-                      Gap(2),
-                      Row(
-                        children: [
-                          Text("category:", style: TextStyle(fontFamily: "regular", color: Colors.grey, fontSize: 10)),
-                          Gap(2),
-                          Text("shoes", style: TextStyle(fontFamily: "bold", color: AppColors.primary, fontSize: 10)),
-                        ],
-                      )
-                    ],
-                  )
-                ],
-              ),
-              Gap(30),
-              Text("Description", style: TextStyle(fontFamily: "bold", color: Colors.black, fontSize: 22)),
-              Gap(5),
-              Text(
-                "Our store is where comfort meets culture featuring bold graphics, minimalist essentials,minimalist essentials, and exclusive drops from emerging and designer established brands. Whether you're building your everyday rotationor seeking statement pieces, our curated collection has something for every style and occasion.",
-                style: TextStyle(fontFamily: "medium", color: Colors.grey, fontSize: 12),
-              ),
-              Gap(20),
-              Text("Statics", style: TextStyle(fontFamily: "bold", color: Colors.black, fontSize: 22)),
-              Gap(19),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: List.generate(4, (index) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 5),
-                      child: StaticCard(
-                        title: "Shipping Time ",
-                        data: "2-3 days",
-                        imagePath: "assets/icons/express.png",
-                      ),
-                    );
-                  }),
-                ),
-              ),
-              Gap(15),
-              Text("Our Products", style: TextStyle(fontFamily: "bold", color: Colors.black, fontSize: 22)),
-              Gap(10),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: List.generate(_categories.length, (index) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedCategoryIndex = index;
-                        });
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: CatTexts(
-                          isSelected: _selectedCategoryIndex == index,
-                          category: _categories[index],
+      body: _isLoading && store == null
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadStore,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.grey[100],
+                          ),
+                          child: ClipOval(
+                            child: SizedBox(
+                              width: 56,
+                              height: 56,
+                              child: store == null
+                                  ? const SizedBox.shrink()
+                                  : _buildStoreLogo(store!.logo),
+                            ),
+                          ),
                         ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-              Gap(20),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  mainAxisExtent: screenSize.height * 0.255,
-                ),
-                itemCount: 6,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailView(productId: "0")));
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 2),
-                      child: ItemCard(
-                        imagePath: 'assets/Images/clothes/item${(index % 5) + 1}.png',
-                        storeName: 'Boutique Parma',
-                        itemName: 'Sweatshirt',
-                        price: '480.00Dz',
-                        rating: '4.5',
-                        isFavorite: false,
+                        const Gap(12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                store?.name.isNotEmpty == true ? store!.name : 'Unknown store',
+                                style: const TextStyle(
+                                  fontFamily: 'semi',
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const Gap(4),
+                              Text(
+                                store?.location.isNotEmpty == true ? '📍${store!.location}' : 'No location available',
+                                style: const TextStyle(
+                                  fontFamily: 'regular',
+                                  color: Colors.black,
+                                  fontSize: 11,
+                                ),
+                              ),
+                              const Gap(4),
+                              Text(
+                                'Shipping time: ${store?.shippingTime ?? 0} days',
+                                style: const TextStyle(
+                                  fontFamily: 'medium',
+                                  color: Colors.grey,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Gap(24),
+                    const Text(
+                      'Description',
+                      style: TextStyle(fontFamily: 'bold', color: Colors.black, fontSize: 22),
+                    ),
+                    const Gap(6),
+                    Text(
+                      store?.description.isNotEmpty == true
+                          ? store!.description
+                          : 'No description available for this store.',
+                      style: const TextStyle(fontFamily: 'medium', color: Colors.grey, fontSize: 12),
+                    ),
+                    const Gap(20),
+                    const Text(
+                      'Statistics',
+                      style: TextStyle(fontFamily: 'bold', color: Colors.black, fontSize: 22),
+                    ),
+                    const Gap(14),
+                    Row(
+                      children: [
+                        _StatCard(label: 'Products', value: '${store?.products.length ?? 0}'),
+                        const Gap(10),
+                        _StatCard(label: 'Orders', value: '${store?.totalOrders ?? 0}'),
+                        const Gap(10),
+                        _StatCard(label: 'Rating', value: '${store?.rating ?? 0}'),
+                      ],
+                    ),
+                    const Gap(18),
+                    const Text(
+                      'Our Products',
+                      style: TextStyle(fontFamily: 'bold', color: Colors.black, fontSize: 22),
+                    ),
+                    const Gap(10),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: List.generate(_categories.length, (index) {
+                          final category = _categories[index];
+                          final isSelected = _selectedCategoryIndex == index;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedCategoryIndex = index;
+                              });
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected ? AppColors.primary : Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                                ),
+                              ),
+                              child: Text(
+                                category,
+                                style: TextStyle(
+                                  fontFamily: 'medium',
+                                  color: isSelected ? Colors.white : Colors.black,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
                       ),
                     ),
-                  );
-                },
+                    const Gap(18),
+                    products.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 30),
+                            child: Center(
+                              child: Text(
+                                'No products available for this store.',
+                                style: TextStyle(fontFamily: 'medium', color: Colors.grey),
+                              ),
+                            ),
+                          )
+                        : GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              mainAxisExtent: 215,
+                            ),
+                            itemCount: products.length,
+                            itemBuilder: (context, index) {
+                              final product = products[index];
+                              final productImage = product.imageUrl.isNotEmpty
+                                  ? product.imageUrl
+                                  : (product.imageUrls.isNotEmpty ? product.imageUrls.first : '');
+
+                              return GestureDetector(
+                                onTap: () => _openProduct(product),
+                                child: ItemCard(
+                                  imagePath: productImage,
+                                  storeName: store?.name ?? '',
+                                  itemName: product.name,
+                                  price: product.price.toStringAsFixed(2),
+                                  rating: product.rating.toString(),
+                                  isFavorite: false,
+                                ),
+                              );
+                            },
+                          ),
+                    const Gap(16),
+                  ],
+                ),
               ),
-              Gap(16),
-            ],
-          ),
+            ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                fontFamily: 'bold',
+                color: Colors.black,
+                fontSize: 18,
+              ),
+            ),
+            const Gap(4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'medium',
+                color: Colors.grey,
+                fontSize: 11,
+              ),
+            ),
+          ],
         ),
       ),
     );

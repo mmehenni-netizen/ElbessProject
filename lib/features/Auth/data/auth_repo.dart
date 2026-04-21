@@ -39,7 +39,7 @@ class AuthRepo {
       throw ApiException.handleError(e);
     } catch (e) {
       if (e is ApiError) {
-        throw e;
+        rethrow;
       }
       throw ApiError(message: e.toString());
     }
@@ -73,7 +73,7 @@ class AuthRepo {
       throw ApiException.handleError(e);
     } catch (e) {
       if (e is ApiError) {
-        throw e;
+        rethrow;
       }
       throw ApiError(message: e.toString());
     }
@@ -106,7 +106,7 @@ class AuthRepo {
       throw ApiException.handleError(e);
     } catch (e) {
       if (e is ApiError) {
-        throw e;
+        rethrow;
       }
       throw ApiError(message: e.toString());
     }
@@ -118,7 +118,7 @@ class AuthRepo {
       'firstName': firstName.trim(),
       'lastName': lastName.trim(),
       'phone': phone.trim(),
-      'dateOfBirth': ?dateOfBirth?.toIso8601String(),
+      'dateOfBirth': dateOfBirth?.toIso8601String() ?? '',
       'address': address.trim(),
       'gender': gender.trim(),
      });
@@ -138,7 +138,34 @@ class AuthRepo {
 
     }catch(e){
       if (e is ApiError) {
-        throw e;
+        rethrow;
+      }
+      throw ApiError(message: e.toString());
+    }
+  }
+
+  Future<ProfileModel?> getProfile() async {
+    try {
+      final response = await apiService.get('/fetch/get-profile');
+
+      if (response is ApiError) {
+        throw response;
+      }
+
+      if (response is! Map<String, dynamic>) {
+        throw ApiError(message: 'Unexpected server response');
+      }
+
+      if (response['success'] == true) {
+        return ProfileModel.fromJson(response);
+      }
+
+      throw ApiError(message: response['message'] ?? 'An error occurred');
+    } on DioException catch (e) {
+      throw ApiException.handleError(e);
+    } catch (e) {
+      if (e is ApiError) {
+        rethrow;
       }
       throw ApiError(message: e.toString());
     }

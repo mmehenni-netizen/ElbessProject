@@ -1,9 +1,24 @@
 import mongoose from "mongoose";
 
-import { connectDB } from "../config/db.js";
-import { rate } from "../controllers/userActions.js";
-
 const { Schema } = mongoose;
+
+const normalizeProductGender = (value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "men") {
+    return "male";
+  }
+
+  if (normalized === "women") {
+    return "female";
+  }
+
+  return normalized;
+};
 
 const ProductSchema = new Schema({
   name: {
@@ -60,12 +75,11 @@ const ProductSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Store",
   },
-  imageUrl: [
-    {
-      type: String,
-      default: "",
-    }
-  ],
+  imageUrl: {
+    type: [String],
+    default: [],
+  },
+  
   category: {
     type: String,
     required: true,
@@ -73,8 +87,14 @@ const ProductSchema = new Schema({
   gender: {
     type: String,
     required: true,
+    set: normalizeProductGender,
     enum: ["male", "female", "unisex"],
   },
+});
+
+ProductSchema.pre("validate", function normalizeLegacyGender(next) {
+  this.gender = normalizeProductGender(this.gender);
+  next();
 });
 
 export const productModel = mongoose.model("Product", ProductSchema);

@@ -30,6 +30,9 @@ class ProfileModel {
 }
 
 class ProfileUser {
+	final String id;
+	final String username;
+	final String email;
 	final String firstName;
 	final String lastName;
 	final String phone;
@@ -38,6 +41,9 @@ class ProfileUser {
 	final String gender;
 
 	ProfileUser({
+		required this.id,
+		required this.username,
+		required this.email,
 		required this.firstName,
 		required this.lastName,
 		required this.phone,
@@ -57,6 +63,9 @@ class ProfileUser {
 								: null;
 
 		return ProfileUser(
+			id: (json['_id'] as String?) ?? '',
+			username: (json['username'] as String?) ?? '',
+			email: (json['email'] as String?) ?? '',
 			firstName: (json['firstName'] as String?) ?? '',
 			lastName: (json['lastName'] as String?) ?? '',
 			phone: (json['phone'] as String?) ?? '',
@@ -68,6 +77,9 @@ class ProfileUser {
 
 	Map<String, dynamic> toJson() {
 		return {
+			'_id': id,
+			'username': username,
+			'email': email,
 			'firstName': firstName,
 			'lastName': lastName,
 			'phone': phone,

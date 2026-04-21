@@ -5,8 +5,52 @@ import 'package:elbess/features/home/data/store_model.dart';
 class HomeRepo {
   final ApiService _apiService = ApiService();
 
+  String _normalizeSingleImageUrl(String raw) {
+    final imagePath = raw.trim();
+
+    if (imagePath.isEmpty || imagePath == 'default-product-image.jpg') {
+      return 'assets/Images/clothes/item1.png';
+    }
+
+    if (imagePath.startsWith('assets/') ||
+        imagePath.startsWith('/uploads/') ||
+        imagePath.startsWith('uploads/') ||
+        imagePath.startsWith('http://') ||
+        imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    if (!imagePath.contains('/') && !imagePath.contains('\\')) {
+      return 'assets/Images/clothes/$imagePath';
+    }
+
+    return imagePath;
+  }
+
+  List<String> _normalizeImageUrls(dynamic rawValue) {
+    if (rawValue is List) {
+      final normalized = rawValue
+          .whereType<String>()
+          .map(_normalizeSingleImageUrl)
+          .where((item) => item.isNotEmpty)
+          .toList();
+
+      if (normalized.isNotEmpty) {
+        return normalized;
+      }
+    }
+
+    if (rawValue is String && rawValue.trim().isNotEmpty) {
+      return <String>[_normalizeSingleImageUrl(rawValue)];
+    }
+
+    return <String>['assets/Images/clothes/item1.png'];
+  }
+
   Map<String, dynamic> _normalizeProductJson(Map<String, dynamic> json) {
-    final imageUrl = (json['imageUrl'] ?? json['ImageUrl'])?.toString() ?? '';
+    final imageUrls = _normalizeImageUrls(
+      json['imageUrl'] ?? json['ImageUrl'] ?? json['imageUrls'] ?? json['image'],
+    );
     final sizeQuantitiesRaw = json['sizeQuantities'] ?? json['SizeQuantities'];
     final sizeQuantities = sizeQuantitiesRaw is List
         ? sizeQuantitiesRaw
@@ -29,7 +73,7 @@ class HomeRepo {
       'totalQuantity': json['totalQuantity'] ?? json['TotalQuantity'] ?? 0,
       'sizeQuantities': sizeQuantities,
       'store': json['store'] ?? json['Store'],
-      'imageUrl': imageUrl,
+      'imageUrl': imageUrls,
       'category': (json['category'] ?? json['Category'])?.toString() ?? '',
       'gender': (json['gender'] ?? json['Gender'])?.toString() ?? '',
       'rates': json['rates'] ?? <dynamic>[],

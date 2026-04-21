@@ -1,7 +1,6 @@
 import 'package:elbess/core/constants/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 
 class Favoritecard extends StatelessWidget {
   const Favoritecard({
@@ -21,34 +20,63 @@ class Favoritecard extends StatelessWidget {
   final String category;
   final VoidCallback? onRemoveTap;
 
+  String _normalizedAssetPath(String path) {
+    return path
+        .replaceFirst('assets/images/', 'assets/Images/')
+        .replaceFirst('assets/icons/', 'assets/icons/');
+  }
+
   String _resolveImageUrl(String rawPath) {
-    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
-      return rawPath;
+    final trimmed = rawPath.trim();
+
+    if (trimmed.isEmpty) {
+      return '';
     }
 
-    if (rawPath.startsWith('/')) {
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+
+    if (trimmed.startsWith('/')) {
       final host = kIsWeb
           ? 'http://localhost:5000'
           : defaultTargetPlatform == TargetPlatform.android
               ? 'http://10.0.2.2:5000'
               : 'http://localhost:5000';
-      return '$host$rawPath';
+      return '$host$trimmed';
     }
 
-    return rawPath;
+    if (trimmed.startsWith('uploads/')) {
+      final host = kIsWeb
+          ? 'http://localhost:5000'
+          : defaultTargetPlatform == TargetPlatform.android
+              ? 'http://10.0.2.2:5000'
+              : 'http://localhost:5000';
+      return '$host/$trimmed';
+    }
+
+    if (trimmed.startsWith('assets/')) {
+      return _normalizedAssetPath(trimmed);
+    }
+
+    if (!trimmed.contains('/') && !trimmed.contains('\\')) {
+      return _normalizedAssetPath('assets/Images/clothes/$trimmed');
+    }
+
+    return trimmed;
   }
 
   Widget _buildImage(String rawPath) {
-    final trimmed = rawPath.trim();
-    if (trimmed.isEmpty) {
+    final resolvedPath = _resolveImageUrl(rawPath);
+    if (resolvedPath.isEmpty) {
       return const Center(
         child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
       );
     }
 
-    if (trimmed.startsWith('assets/')) {
+    if (resolvedPath.startsWith('assets/')) {
       return Image.asset(
-        trimmed,
+        resolvedPath,
         fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => const Center(
           child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
@@ -56,14 +84,8 @@ class Favoritecard extends StatelessWidget {
       );
     }
 
-    if (!trimmed.contains('/') && !trimmed.contains('\\')) {
-      return const Center(
-        child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
-      );
-    }
-
     return Image.network(
-      _resolveImageUrl(trimmed),
+      resolvedPath,
       fit: BoxFit.contain,
       errorBuilder: (_, __, ___) => const Center(
         child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),

@@ -1,12 +1,60 @@
 import 'package:elbess/core/network/api_service.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/features/home/data/store_model.dart';
+import 'package:elbess/features/store_page/data/store_repo.dart';
+import 'package:flutter/foundation.dart';
 
 class DetailsRepo {
 final ApiService _apiService = ApiService();
+final StoreRepo _storeRepo = StoreRepo();
+
+String _normalizeSingleImageUrl(String raw) {
+  final imagePath = raw.trim();
+
+  if (imagePath.isEmpty || imagePath == 'default-product-image.jpg') {
+    return 'assets/Images/clothes/item1.png';
+  }
+
+  if (imagePath.startsWith('assets/') ||
+      imagePath.startsWith('/uploads/') ||
+      imagePath.startsWith('uploads/') ||
+      imagePath.startsWith('http://') ||
+      imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+
+  if (!imagePath.contains('/') && !imagePath.contains('\\')) {
+    return 'assets/Images/clothes/$imagePath';
+  }
+
+  return imagePath;
+}
+
+List<String> _normalizeImageUrls(dynamic rawValue) {
+  if (rawValue is List) {
+    final normalized = rawValue
+        .whereType<String>()
+        .map(_normalizeSingleImageUrl)
+        .where((item) => item.isNotEmpty)
+        .toList();
+
+    if (normalized.isNotEmpty) {
+      return normalized;
+    }
+  }
+
+  if (rawValue is String && rawValue.trim().isNotEmpty) {
+    return <String>[_normalizeSingleImageUrl(rawValue)];
+  }
+
+  return <String>['assets/Images/clothes/item1.png'];
+}
 
 Map<String, dynamic> _normalizeProductJson(Map<String, dynamic> json) {
   final rawStore = json['store'] ?? json['Store'];
+  final imageUrls = _normalizeImageUrls(
+    json['imageUrl'] ?? json['ImageUrl'] ?? json['imageUrls'] ?? json['image'],
+  );
 
   Map<String, dynamic>? normalizedStore;
   if (rawStore is Map<String, dynamic>) {
@@ -37,7 +85,7 @@ Map<String, dynamic> _normalizeProductJson(Map<String, dynamic> json) {
     'totalQuantity': json['totalQuantity'] ?? json['TotalQuantity'] ?? 0,
     'sizeQuantities': normalizedSizeQuantities,
     'store': normalizedStore,
-    'imageUrl': (json['imageUrl'] ?? json['ImageUrl'])?.toString() ?? '',
+    'imageUrl': imageUrls,
     'category': (json['category'] ?? json['Category'])?.toString() ?? '',
     'gender': (json['gender'] ?? json['Gender'])?.toString() ?? '',
     'rates': json['rates'] ?? <dynamic>[],
@@ -59,51 +107,13 @@ Future<ProductModel?> getProductDetails(String productId) async {
 
       return ProductModel.fromJson(_normalizeProductJson(productJson));
  } catch (e) {
-    print('Error fetching product details: $e');
+    debugPrint('Error fetching product details: $e');
     return null;
 
  }
   }
 
   Future<StoreModel> getStoreDetails(String storeId) async {
- try {
-      final response = await _apiService.get('/fetch/get-store/$storeId');
-      if (response is! Map<String, dynamic>) {
-        return _defaultStore();
-      }
-
-      final storeJson = response['store'];
-      if (storeJson is! Map<String, dynamic>) {
-        return _defaultStore();
-      }
-
-      return StoreModel.fromJson(storeJson);
- } catch (e) {
-    print('Error fetching store details: $e');
-    return _defaultStore();
-
- }
+    return _storeRepo.getStoreById(storeId);
   }
-
-  StoreModel _defaultStore() {
-    return StoreModel(
-      id: '',
-      name: 'Unknown store',
-      location: '',
-      description: '',
-      activeProducts: 0,
-      rating: 0,
-      revenus: 0,
-      shippingTime: 0,
-      products: <ProductModel>[],
-      totalOrders: 0,
-      address: '',
-      password: '',
-      isEmailVerified: false,
-      logo: '',
-      rates: <StoreRateModel>[],
-      version: 0,
-    );
-  }
-
 }

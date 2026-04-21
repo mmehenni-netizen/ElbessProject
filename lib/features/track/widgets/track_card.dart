@@ -1,4 +1,5 @@
 import 'package:elbess/core/constants/colors.dart';
+import 'package:elbess/features/checkout/data/order_model.dart';
 import 'package:elbess/features/track/widgets/ordertrack.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -6,18 +7,10 @@ import 'package:gap/gap.dart';
 class TrackCard extends StatefulWidget {
   const TrackCard({
     super.key,
-    required this.imagePath,
-    required this.itemName,
-    required this.price,
-    required this.size,
-    required this.color,
+    required this.order,
   });
 
-  final String imagePath;
-  final String itemName;
-  final String price;
-  final String size;
-  final String color;
+  final OrderModel order;
 
   @override
   State<TrackCard> createState() => _TrackCardState();
@@ -28,6 +21,16 @@ class _TrackCardState extends State<TrackCard> {
 
   @override
   Widget build(BuildContext context) {
+    final order = widget.order;
+    final imageUrl = order.productImageUrl.trim();
+    final title = order.productName.trim().isNotEmpty
+        ? order.productName.trim()
+        : 'Product';
+    final size = order.size.trim().isNotEmpty ? order.size.trim() : 'N/A';
+    final deliveryType = order.office ? 'Office' : 'Home';
+    final priceText = '\$${order.productPrice.toStringAsFixed(2)}';
+    final statusSteps = _buildStatusSteps(order);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Container(
@@ -73,7 +76,19 @@ class _TrackCardState extends State<TrackCard> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(18),
-                            child: Image.asset(widget.imagePath, fit: BoxFit.cover),
+                            child: imageUrl.isEmpty
+                                ? const Icon(
+                                    Icons.image_not_supported_outlined,
+                                    color: Colors.grey,
+                                  )
+                                : Image.network(
+                                    imageUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) => const Icon(
+                                      Icons.image_not_supported_outlined,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                           ),
                         ),
                         const Gap(12),
@@ -82,7 +97,7 @@ class _TrackCardState extends State<TrackCard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.itemName,
+                                title,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -94,7 +109,7 @@ class _TrackCardState extends State<TrackCard> {
                               ),
                               const Gap(8),
                               Text(
-                                'Size ${widget.size} • Color ${widget.color}',
+                                'Size $size • Qty ${order.quantity} • $deliveryType',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -107,7 +122,7 @@ class _TrackCardState extends State<TrackCard> {
                               Row(
                                 children: [
                                   Text(
-                                    widget.price,
+                                    priceText,
                                     style: TextStyle(
                                       fontFamily: 'bold',
                                       color: AppColors.primary,
@@ -135,30 +150,18 @@ class _TrackCardState extends State<TrackCard> {
                   const Gap(14),
                   const Divider(height: 1, color: Color(0xFFEDEDED)),
                   const Gap(10),
-                  const Ordertrack(
-                    status: 'Order Placed',
-                    subtitle: 'Oct 20, 2023 • 09:30 AM',
-                    active: true,
-                    isdone: true,
-                  ),
-                  const Ordertrack(
-                    status: 'Order Confirmed',
-                    subtitle: 'Oct 20, 2023 • 11:45 AM',
-                    active: true,
-                    isdone: true,
-                  ),
-                  const Ordertrack(
-                    status: 'Shipped from Warehouse',
-                    subtitle: 'Oct 21, 2023 • 02:20 PM',
-                    active: true,
-                    isdone: true,
-                  ),
-                  const Ordertrack(
-                    status: 'Out for Delivery',
-                    subtitle: 'Expected by 10:00 AM',
-                    active: false,
-                    isdone: false,
-                    showConnector: false,
+                  ...List.generate(
+                    statusSteps.length,
+                    (index) {
+                      final step = statusSteps[index];
+                      return Ordertrack(
+                        status: step.title,
+                        subtitle: step.subtitle,
+                        active: step.active,
+                        isdone: step.isDone,
+                        showConnector: index != statusSteps.length - 1,
+                      );
+                    },
                   ),
                 ],
               ],
@@ -168,4 +171,104 @@ class _TrackCardState extends State<TrackCard> {
       ),
     );
   }
+
+  List<_TrackStep> _buildStatusSteps(OrderModel order) {
+    if (order.canceled || order.rejected) {
+      return <_TrackStep>[
+        _TrackStep(
+          title: 'Order Placed',
+          subtitle: _formatDate(order.confirmationDate),
+          active: true,
+          isDone: true,
+        ),
+        _TrackStep(
+          title: order.rejected ? 'Order Rejected' : 'Order Canceled',
+          subtitle: _formatDate(order.cancellationDate),
+          active: true,
+          isDone: true,
+        ),
+      ];
+    }
+
+    return <_TrackStep>[
+      _TrackStep(
+        title: 'Order Placed',
+        subtitle: _formatDate(order.confirmationDate),
+        active: true,
+        isDone: true,
+      ),
+      _TrackStep(
+        title: 'Order Confirmed',
+        subtitle: _formatDate(order.confirmationDate),
+        active: order.confirmed || order.prepared || order.shipped || order.delivered,
+        isDone: order.confirmed || order.prepared || order.shipped || order.delivered,
+      ),
+      _TrackStep(
+        title: 'Prepared',
+        subtitle: _formatDate(order.preparationDate),
+        active: order.prepared || order.shipped || order.delivered,
+        isDone: order.prepared || order.shipped || order.delivered,
+      ),
+      _TrackStep(
+        title: 'Shipped',
+        subtitle: _formatDate(order.shippingDate),
+        active: order.shipped || order.delivered,
+        isDone: order.shipped || order.delivered,
+      ),
+      _TrackStep(
+        title: 'Delivered',
+        subtitle: _formatDate(order.deliveryDate),
+        active: order.delivered,
+        isDone: order.delivered,
+      ),
+    ];
+  }
+
+  String _formatDate(DateTime? value) {
+    if (value == null) {
+      return 'Pending update';
+    }
+
+    final local = value.toLocal();
+    final month = _monthLabel(local.month);
+    final day = local.day;
+    final year = local.year;
+    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+    final minute = local.minute.toString().padLeft(2, '0');
+    final period = local.hour >= 12 ? 'PM' : 'AM';
+    return '$month $day, $year • $hour:$minute $period';
+  }
+
+  String _monthLabel(int month) {
+    const labels = <String>[
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    return labels[month - 1];
+  }
+}
+
+class _TrackStep {
+  const _TrackStep({
+    required this.title,
+    required this.subtitle,
+    required this.active,
+    required this.isDone,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool active;
+  final bool isDone;
 }

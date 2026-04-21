@@ -45,6 +45,7 @@ class ProductModel {
 	final int totalQuantity;
 	final List<SizeQuantityModel> sizeQuantities;
 	final StoreModel? store;
+	final List<String> imageUrls;
 	final String imageUrl;
 	final String category;
 	final String gender;
@@ -60,6 +61,7 @@ class ProductModel {
 		required this.totalQuantity,
 		required this.sizeQuantities,
 		required this.store,
+		required this.imageUrls,
 		required this.imageUrl,
 		required this.category,
 		required this.gender,
@@ -70,6 +72,19 @@ class ProductModel {
 	factory ProductModel.fromJson(Map<String, dynamic> json) {
 		final rawSizeQuantities = json['sizeQuantities'];
 		final rawRates = json['rates'];
+		final rawImageUrls = json['imageUrl'] ?? json['imageUrls'] ?? json['image'];
+		final imageUrls = rawImageUrls is List
+				? rawImageUrls
+						.whereType<String>()
+						.map((item) => item.trim())
+						.where((item) => item.isNotEmpty)
+						.toList()
+				: rawImageUrls is String && rawImageUrls.trim().isNotEmpty
+					? <String>[rawImageUrls.trim()]
+					: <String>[];
+		final primaryImageUrl = imageUrls.isNotEmpty
+				? imageUrls.first
+				: (json['image'] as String?)?.trim() ?? '';
 
 		return ProductModel(
 			id: (json['_id'] as String?) ?? '',
@@ -87,7 +102,8 @@ class ProductModel {
 			store: json['store'] is Map<String, dynamic>
 					? StoreModel.fromJson(json['store'] as Map<String, dynamic>)
 					: null,
-			imageUrl: (json['imageUrl'] as String?) ?? '',
+			imageUrls: imageUrls,
+			imageUrl: primaryImageUrl,
 			category: (json['category'] as String?) ?? '',
 			gender: (json['gender'] as String?) ?? '',
 			rates: rawRates is List
@@ -110,15 +126,14 @@ class ProductModel {
 			'totalQuantity': totalQuantity,
 			'sizeQuantities': sizeQuantities.map((item) => item.toJson()).toList(),
 			'store': store?.toJson(),
-			'imageUrl': imageUrl,
+			'imageUrl': imageUrls.isNotEmpty ? imageUrls : (imageUrl.isNotEmpty ? [imageUrl] : <String>[]),
+			'image': imageUrl,
 			'category': category,
 			'gender': gender,
 			'rates': rates.map((item) => item.toJson()).toList(),
 			'__v': version,
 		};
 	}
-
-  void operator [](int other) {}
 }
 
 class SizeQuantityModel {

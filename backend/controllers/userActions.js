@@ -199,6 +199,11 @@ export const rate = async (req, res) => {
 export const checkout = async (req, res) => {
   let orders = [];
   let createdOrders = [];
+  const name = typeof req.body.name === "string" ? req.body.name.trim() : "";
+  const location =
+    typeof req.body.location === "string" ? req.body.location.trim() : "";
+  const numero =
+    typeof req.body.numero === "string" ? req.body.numero.trim() : "";
 
   try {
     if (req.body.office === null || req.body.domicile === null) {
@@ -226,7 +231,15 @@ export const checkout = async (req, res) => {
     // now creating orders for each item in the orders array
 
     for (const item of orders) {
-      if (!item.productId || !item.quantity || !item.size) {
+      const quantity = Number(item.quantity);
+      const price = Number(item.price);
+
+      if (
+        !item.productId ||
+        !item.size ||
+        !Number.isFinite(quantity) ||
+        quantity <= 0
+      ) {
         throw new Error(
           "Invalid order item format ! productId, quantity, size, are required for each order item !",
         );
@@ -242,17 +255,23 @@ export const checkout = async (req, res) => {
         (s) => s.size === item.size,
       )?.quantity;
 
-      if (!productQuantity || productQuantity < item.quantity) {
+      if (!productQuantity || productQuantity < quantity) {
         throw new Error(
           `Size not found or not enough quantity for product ${product.name} in size ${item.size} !`,
         );
       }
 
+      const orderPrice = Number.isFinite(price) && price >= 0 ? price : product.price;
+
       const order = await orderModel.create({
         user: req.user._id,
         store: product.store,
         product: item.productId,
-        quantity: item.quantity,
+        quantity: quantity,
+        price: orderPrice,
+        name: name,
+        location: location,
+        numero: numero,
         size: item.size,
         office: req.body.office,
         domicile: req.body.domicile,
@@ -261,15 +280,19 @@ export const checkout = async (req, res) => {
       createdOrders.push(order);
       await user.updateOne({ $push: { orders: order._id } });
 
-      // now reducing the quantity of the product in the database
-      product.sizeQuantity = product.sizeQuantities.map((s) => {
-        if (s.size === item.size) {
-          s.quantity -= item.quantity;
-        }
-        return s;
-      });
-
-      await product.save();
+      // Reduce inventory without re-saving the entire product document.
+      await productModel.updateOne(
+        {
+          _id: product._id,
+          "sizeQuantities.size": item.size,
+        },
+        {
+          $inc: {
+            "sizeQuantities.$.quantity": -quantity,
+            totalQuantity: -quantity,
+          },
+        },
+      );
     }
 
     return res.status(200).json({

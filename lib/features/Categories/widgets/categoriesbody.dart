@@ -5,6 +5,7 @@ import 'package:elbess/features/home/widgets/item_card.dart';
 import 'package:elbess/features/productdetail/presentation/product_detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class Categoriesbody extends StatefulWidget {
   const Categoriesbody({super.key});
@@ -114,7 +115,9 @@ class _CategoriesbodyState extends State<Categoriesbody> {
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        child: Column(
+        child: Skeletonizer(
+          enabled: isLoading,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Gap(topGap),
@@ -217,6 +220,7 @@ class _CategoriesbodyState extends State<Categoriesbody> {
             ),
             const Gap(20),
           ],
+        ),
         ),
       ),
     );

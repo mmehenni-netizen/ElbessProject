@@ -40,50 +40,24 @@ class _ItemCardState extends State<ItemCard> {
       return rawPath;
     }
 
-    if (rawPath.startsWith('/')) {
+    if (rawPath.startsWith('/') || rawPath.startsWith('uploads/')) {
       final host = kIsWeb
           ? 'http://localhost:5000'
           : defaultTargetPlatform == TargetPlatform.android
               ? 'http://10.0.2.2:5000'
               : 'http://localhost:5000';
-      return '$host$rawPath';
+      if (rawPath.startsWith('/')) {
+        return '$host$rawPath';
+      }
+      return '$host/$rawPath';
     }
 
     return rawPath;
   }
 
-  Widget _buildProductImage(String rawPath) {
-    final trimmed = rawPath.trim();
-    if (trimmed.isEmpty) {
-      return const Center(
-        child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
-      );
-    }
-
-    if (trimmed.startsWith('assets/')) {
-      final imagePath = _normalizedAssetPath(trimmed);
-      return Image.asset(
-        imagePath,
-        height: MediaQuery.of(context).size.height * 0.5,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return const Center(
-            child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
-          );
-        },
-      );
-    }
-
-    if (!trimmed.contains('/') && !trimmed.contains('\\')) {
-      return const Center(
-        child: Icon(Icons.image_not_supported_outlined, color: Colors.grey),
-      );
-    }
-
-    final imageUrl = _resolveImageUrl(trimmed);
-    return Image.network(
-      imageUrl,
-      height: MediaQuery.of(context).size.height * 0.5,
+  Widget _buildFallbackImage() {
+    return Image.asset(
+      'assets/Images/clothes/item1.png',
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
         return const Center(
@@ -93,6 +67,37 @@ class _ItemCardState extends State<ItemCard> {
     );
   }
 
+ Widget _buildProductImage(String rawPath) {
+  final trimmed = rawPath.trim();
+
+  if (trimmed.isEmpty) {
+    return _buildFallbackImage();
+  }
+
+ 
+  if (trimmed.startsWith('http')) {
+    return Image.network(
+      trimmed,
+      fit: BoxFit.contain,
+      width: double.infinity,
+      height: double.infinity,
+      errorBuilder: (context, error, stackTrace) {
+        return _buildFallbackImage();
+      },
+    );
+  }
+
+  // ✅ Case 2: Asset Image
+  return Image.asset(
+    _normalizedAssetPath(trimmed),
+    fit: BoxFit.cover,
+    width: double.infinity,
+    height: double.infinity,
+    errorBuilder: (context, error, stackTrace) {
+      return _buildFallbackImage();
+    },
+  );
+}
   @override
   Widget build(BuildContext context) {
     return  Column(

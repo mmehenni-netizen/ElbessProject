@@ -1,5 +1,4 @@
 import 'package:elbess/features/Categories/presentation/categoriesview.dart';
-import 'package:elbess/features/favorites/presentation/favoritesview.dart';
 import 'package:elbess/features/home/presentation/homeview.dart';
 import 'package:elbess/features/cart/presentation/cartview.dart';
 import 'package:elbess/core/utils/size_config.dart';
@@ -18,29 +17,24 @@ class _RootState extends State<Root> {
   late PageController pageController;
   late List<Widget> pages;
   int currentScreen = 0;
+  bool _hasInitializedSizeConfig = false;
   final List<IconData> _icons = [
     CupertinoIcons.house,
     CupertinoIcons.square_grid_2x2,
     CupertinoIcons.cart,
     CupertinoIcons.location,
-    CupertinoIcons.heart,
-    
   ];
   final List<IconData> _selectedIcons = [
     CupertinoIcons.house_fill,
     CupertinoIcons.square_grid_2x2_fill,
     CupertinoIcons.cart_fill,
     CupertinoIcons.location_solid,
-    CupertinoIcons.heart_fill,
-    
   ];
   final List<String> _labels = [
     'Home',
     'Categories',
     'Cart',
     'Track',
-    'Favorites',
-    
   ];
   @override
   void initState() {
@@ -49,11 +43,21 @@ class _RootState extends State<Root> {
       Categoriesview(),
       Cartview(),
       Trackview(),
-      Favoritesview(),
-      
     ];
     pageController = PageController(initialPage: currentScreen);
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_hasInitializedSizeConfig) {
+      return;
+    }
+
+    SizeConfig().init(context);
+    _hasInitializedSizeConfig = true;
   }
 
   @override
@@ -64,8 +68,6 @@ class _RootState extends State<Root> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
-
     return Scaffold(
       extendBody: true,
       body: PageView(

@@ -50,7 +50,7 @@ class _StoreCardState extends State<StoreCard> {
         imageUrl,
         width: size,
         height: size,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => SizedBox(width: size, height: size),
       );
     }

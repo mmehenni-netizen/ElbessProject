@@ -2,6 +2,35 @@ import { productModel } from "../model/product.js";
 import { storeModel } from "../model/store.js";
 import { userModel } from "../model/user.js";
 
+const normalizeProductImages = (product) => {
+  const baseProduct =
+    typeof product?.toObject === "function" ? product.toObject() : product;
+
+  let imageUrl = [];
+
+  if (Array.isArray(baseProduct?.imageUrl)) {
+    imageUrl = baseProduct.imageUrl.filter(
+      (url) => typeof url === "string" && url.trim().length > 0,
+    );
+  } else if (
+    typeof baseProduct?.imageUrl === "string" &&
+    baseProduct.imageUrl.trim().length > 0
+  ) {
+    imageUrl = [baseProduct.imageUrl];
+  } else if (
+    typeof baseProduct?.image === "string" &&
+    baseProduct.image.trim().length > 0
+  ) {
+    imageUrl = [baseProduct.image];
+  }
+
+  return {
+    ...baseProduct,
+    imageUrl,
+    image: imageUrl[0] || "",
+  };
+};
+
 export const getProducts = async (req, res) => {
   try {
     if (!req.query.categories) {
@@ -15,10 +44,13 @@ export const getProducts = async (req, res) => {
         throw new Error("No products found !");
       }
 
+      const products = fetchedProducts.map(normalizeProductImages);
+
       res.status(200).json({
         success: true,
+        count: products.length,
         message: "Products fetched successfully !",
-        products: fetchedProducts,
+        products,
       });
     } else {
       const categories = req.query.categories.split(",");
@@ -35,10 +67,13 @@ export const getProducts = async (req, res) => {
         );
       }
 
+      const products = fetchedProducts.map(normalizeProductImages);
+
       res.status(200).json({
         success: true,
+        count: products.length,
         message: "Products fetched successfully !",
-        products: fetchedProducts,
+        products,
       });
     }
   } catch (error) {
@@ -84,7 +119,7 @@ export const getProductById = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Product fetched successfully !",
-      product: product,
+      product: normalizeProductImages(product),
     });
   } catch (error) {
     return res.status(500).json({
@@ -132,7 +167,11 @@ export const getOrders = async (req, res) => {
     }
 
     for (let i = 0; i < orders.length; i++) {
-      total = total + orders[i].product.price * orders[i].quantity;
+      const unitPrice = Number.isFinite(Number(orders[i].price))
+        ? Number(orders[i].price)
+        : orders[i].product.price;
+
+      total = total + unitPrice * orders[i].quantity;
     }
 
     res.status(200).json({
@@ -163,6 +202,29 @@ export const getFavorites = async (req, res) => {
       success: true,
       message: "Favorites fetched successfully !",
       favorites: user.favorites,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getProfile = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user._id).select(
+      "username email firstName lastName phone address dateOfBirth gender",
+    );
+
+    if (!user) {
+      throw new Error("User not found !");
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile fetched successfully !",
+      user: user,
     });
   } catch (error) {
     return res.status(500).json({

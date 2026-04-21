@@ -6,6 +6,7 @@ import {
   getStoreById,
   getOrders,
   getFavorites,
+  getProfile,
 } from "../controllers/fetch.js";
 
 import { checkAuth } from "../middleware/auth.js";
@@ -20,5 +21,6 @@ router.get("/get-product/:id", checkAuth, getProductById);
 
 router.get("/get-orders", checkAuth, getOrders);
 router.get("/get-favorites", checkAuth, getFavorites);
+router.get("/get-profile", checkAuth, getProfile);
 
 export default router;
