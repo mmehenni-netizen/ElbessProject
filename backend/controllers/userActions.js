@@ -259,6 +259,7 @@ export const checkout = async (req, res) => {
       });
 
       createdOrders.push(order);
+
       await user.updateOne({ $push: { orders: order._id } });
 
       // now reducing the quantity of the product in the database
