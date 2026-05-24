@@ -62,7 +62,8 @@ export const setProfile = async (req, res) => {
 };
 
 export const setFavorite = async (req, res) => {
-  const { productId } = req.body || {};
+  const productId =
+    typeof req.body?.productId === "string" ? req.body.productId.trim() : "";
 
   try {
     if (!productId) {
@@ -81,7 +82,9 @@ export const setFavorite = async (req, res) => {
       throw new Error("User not found !");
     }
 
-    const isFavorite = user.favorites.includes(productId);
+    const isFavorite = user.favorites.some(
+      (id) => id.toString() === productId,
+    );
 
     if (isFavorite) {
       user.favorites = user.favorites.filter(
@@ -206,7 +209,10 @@ export const checkout = async (req, res) => {
     typeof req.body.numero === "string" ? req.body.numero.trim() : "";
 
   try {
-    if (req.body.office === null || req.body.domicile === null) {
+    if (
+      typeof req.body.office !== "boolean" ||
+      typeof req.body.domicile !== "boolean"
+    ) {
       throw new Error("Office and domicile are required !");
     }
 
@@ -228,15 +234,18 @@ export const checkout = async (req, res) => {
       throw new Error("User not found !");
     }
 
-    // now creating orders for each item in the orders array
+    const validatedItems = [];
 
     for (const item of orders) {
-      const quantity = Number(item.quantity);
-      const price = Number(item.price);
+      const productId =
+        typeof item?.productId === "string" ? item.productId.trim() : "";
+      const size = typeof item?.size === "string" ? item.size.trim() : "";
+      const quantity = Number(item?.quantity);
+      const price = Number(item?.price);
 
       if (
-        !item.productId ||
-        !item.size ||
+        !productId ||
+        !size ||
         !Number.isFinite(quantity) ||
         quantity <= 0
       ) {
@@ -245,30 +254,41 @@ export const checkout = async (req, res) => {
         );
       }
 
-      const product = await productModel.findById(item.productId);
+      const product = await productModel.findById(productId);
 
       if (!product) {
         throw new Error("No product found ! invalid productId");
       }
 
       const productQuantity = product.sizeQuantities.find(
-        (s) => s.size === item.size,
+        (s) => s.size === size,
       )?.quantity;
 
-      if (!productQuantity || productQuantity < quantity) {
+      if (productQuantity === undefined || productQuantity < quantity) {
         throw new Error(
-          `Size not found or not enough quantity for product ${product.name} in size ${item.size} !`,
+          `Size not found or not enough quantity for product ${product.name} in size ${size} !`,
         );
       }
 
-      const orderPrice = Number.isFinite(price) && price >= 0 ? price : product.price;
+      const orderPrice =
+        Number.isFinite(price) && price >= 0 ? price : product.price;
 
+      validatedItems.push({
+        product,
+        productId,
+        quantity,
+        size,
+        orderPrice,
+      });
+    }
+
+    for (const item of validatedItems) {
       const order = await orderModel.create({
         user: req.user._id,
-        store: product.store,
+        store: item.product.store,
         product: item.productId,
-        quantity: quantity,
-        price: orderPrice,
+        quantity: item.quantity,
+        price: item.orderPrice,
         name: name,
         location: location,
         numero: numero,
@@ -283,13 +303,13 @@ export const checkout = async (req, res) => {
       // Reduce inventory without re-saving the entire product document.
       await productModel.updateOne(
         {
-          _id: product._id,
+          _id: item.product._id,
           "sizeQuantities.size": item.size,
         },
         {
           $inc: {
-            "sizeQuantities.$.quantity": -quantity,
-            totalQuantity: -quantity,
+            "sizeQuantities.$.quantity": -item.quantity,
+            totalQuantity: -item.quantity,
           },
         },
       );

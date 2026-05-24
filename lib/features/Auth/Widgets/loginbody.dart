@@ -46,10 +46,8 @@ class _LoginbodyState extends State<Loginbody> {
       if (!mounted) {
         return;
       }
-      Navigator.pushAndRemoveUntil(
-        context,
+      Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const Root()),
-        (route) => false,
       );
     } catch (e) {
       String errorMessage = 'An error occurred during login.';

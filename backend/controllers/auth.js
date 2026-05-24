@@ -143,7 +143,7 @@ export const login = async (req, res) => {
     if (!user.isVerified) {
       return res.status(400).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Email not verified. Please verify your email before login.",
       });
     }
 

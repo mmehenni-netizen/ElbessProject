@@ -16,17 +16,29 @@ class OrderRepo {
     String numero = '',
   }) async {
     try {
+      final normalizedOrders = orders
+          .map(
+            (item) => <String, dynamic>{
+              'productId': (item['productId'] ?? '').toString().trim(),
+              'quantity': _parseQuantity(item['quantity']),
+              'size': (item['size'] ?? '').toString().trim(),
+              'price': _parsePrice(item['price']),
+            },
+          )
+          .where(
+            (item) =>
+                item['productId'].toString().isNotEmpty &&
+                item['size'].toString().isNotEmpty &&
+                _parseQuantity(item['quantity']) > 0,
+          )
+          .toList();
+
+      if (normalizedOrders.isEmpty) {
+        throw ApiError(message: 'No valid items available for checkout.');
+      }
+
       final response = await _apiService.post('/actions/checkout', {
-        'orders': orders
-            .map(
-              (item) => <String, dynamic>{
-                'productId': (item['productId'] ?? '').toString().trim(),
-                'quantity': _parseQuantity(item['quantity']),
-                'size': (item['size'] ?? '').toString().trim(),
-                'price': _parsePrice(item['price']),
-              },
-            )
-            .toList(),
+        'orders': normalizedOrders,
         'office': office,
         'domicile': domicile,
         'name': name.trim(),
@@ -188,9 +200,11 @@ class OrderRepo {
   Map<String, dynamic> _normalizeOrderJson(Map<String, dynamic> json) {
     return <String, dynamic>{
       ...json,
+      '_id': json['_id']?.toString() ?? '',
       'user': json['user'] ?? '',
       'store': json['store'] ?? '',
       'product': json['product'] ?? '',
+      'price': _parsePrice(json['price']),
       'quantity': _parseQuantity(json['quantity']),
       'size': json['size']?.toString() ?? '',
       'name': json['name']?.toString() ?? '',

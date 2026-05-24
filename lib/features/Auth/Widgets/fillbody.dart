@@ -177,7 +177,7 @@ class _FillbodyState extends State<Fillbody> {
               Gap(20),
               FillTextField(hint: "Phone number", controller: phoneController),
               Gap(20),
-              FillTextField(hint: "Date of birth", controller: dateofbirthController),
+              FillTextField(hint: "yyyy-MM-dd : Date of birth", controller: dateofbirthController),
               Gap(20),
               FillTextField(hint: "Adress", controller: adressController),
               Gap(20),

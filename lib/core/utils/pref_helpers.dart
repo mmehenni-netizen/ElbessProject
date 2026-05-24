@@ -7,6 +7,62 @@ class PrefHelpers {
   static const String _keyFavoriteProductIds = "favorite_product_ids";
   static const String _keyCartItems = "cart_items";
 
+  static String _normalizeFavoriteId(String productId) => productId.trim();
+
+  static int _parseQuantity(dynamic raw) {
+    if (raw is int) {
+      return raw;
+    }
+    if (raw is num) {
+      return raw.toInt();
+    }
+    return int.tryParse(raw?.toString() ?? '') ?? 1;
+  }
+
+  static double _parsePrice(dynamic raw) {
+    if (raw is double) {
+      return raw;
+    }
+    if (raw is num) {
+      return raw.toDouble();
+    }
+    return double.tryParse(raw?.toString() ?? '') ?? 0.0;
+  }
+
+  static Map<String, dynamic>? sanitizeCartItem(Map<String, dynamic> rawItem) {
+    final productId = (rawItem['productId'] ?? '').toString().trim();
+    final size = (rawItem['size'] ?? '').toString().trim();
+
+    if (productId.isEmpty || size.isEmpty) {
+      return null;
+    }
+
+    final quantity = _parseQuantity(rawItem['quantity']);
+    if (quantity <= 0) {
+      return null;
+    }
+
+    return <String, dynamic>{
+      'productId': productId,
+      'storeId': (rawItem['storeId'] ?? '').toString().trim(),
+      'name': (rawItem['name'] ?? 'Product').toString().trim(),
+      'imageUrl': (rawItem['imageUrl'] ?? '').toString().trim(),
+      'price': _parsePrice(rawItem['price']),
+      'size': size,
+      'quantity': quantity,
+      'storeName': (rawItem['storeName'] ?? 'Store').toString().trim(),
+    };
+  }
+
+  static List<Map<String, dynamic>> sanitizeCartItems(
+    Iterable<Map<String, dynamic>> items,
+  ) {
+    return items
+        .map(sanitizeCartItem)
+        .whereType<Map<String, dynamic>>()
+        .toList();
+  }
+
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keytoken, token);
@@ -22,25 +78,54 @@ class PrefHelpers {
     await prefs.remove(_keytoken);
   }
 
+  /// Remove local favorites and cart items (used when switching accounts)
+  static Future<void> clearUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyFavoriteProductIds);
+    await prefs.remove(_keyCartItems);
+  }
+
+  /// Remove everything including auth token
+  static Future<void> clearAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keytoken);
+    await prefs.remove(_keyFavoriteProductIds);
+    await prefs.remove(_keyCartItems);
+  }
+
   static Future<List<String>> getFavoriteProductIds() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getStringList(_keyFavoriteProductIds) ?? <String>[];
+    return (prefs.getStringList(_keyFavoriteProductIds) ?? <String>[])
+        .map(_normalizeFavoriteId)
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
   }
 
   static Future<void> saveFavoriteProductIds(List<String> ids) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_keyFavoriteProductIds, ids);
+    final normalizedIds = ids
+        .map(_normalizeFavoriteId)
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    await prefs.setStringList(_keyFavoriteProductIds, normalizedIds);
   }
 
   static Future<bool> toggleFavoriteProductId(String productId) async {
     final ids = await getFavoriteProductIds();
     final set = ids.toSet();
+    final normalizedProductId = _normalizeFavoriteId(productId);
 
-    final alreadyFavorite = set.contains(productId);
+    if (normalizedProductId.isEmpty) {
+      return false;
+    }
+
+    final alreadyFavorite = set.contains(normalizedProductId);
     if (alreadyFavorite) {
-      set.remove(productId);
+      set.remove(normalizedProductId);
     } else {
-      set.add(productId);
+      set.add(normalizedProductId);
     }
 
     await saveFavoriteProductIds(set.toList());
@@ -49,32 +134,52 @@ class PrefHelpers {
 
   static Future<bool> isFavoriteProduct(String productId) async {
     final ids = await getFavoriteProductIds();
-    return ids.contains(productId);
+    return ids.contains(_normalizeFavoriteId(productId));
   }
 
   static Future<List<Map<String, dynamic>>> getCartItems() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList(_keyCartItems) ?? <String>[];
 
-    return raw
-        .map((item) => jsonDecode(item))
-        .whereType<Map>()
-        .map((item) => item.map((key, value) => MapEntry(key.toString(), value)))
-        .toList();
+    final items = <Map<String, dynamic>>[];
+
+    for (final item in raw) {
+      try {
+        final decoded = jsonDecode(item);
+        if (decoded is Map) {
+          final sanitizedItem = sanitizeCartItem(
+            decoded.map((key, value) => MapEntry(key.toString(), value)),
+          );
+          if (sanitizedItem != null) {
+            items.add(sanitizedItem);
+          }
+        }
+      } catch (_) {
+        // Skip malformed cart entries instead of crashing the app.
+        continue;
+      }
+    }
+
+    return items;
   }
 
   static Future<void> saveCartItems(List<Map<String, dynamic>> items) async {
     final prefs = await SharedPreferences.getInstance();
-    final encoded = items.map(jsonEncode).toList();
+    final encoded = sanitizeCartItems(items).map(jsonEncode).toList();
     await prefs.setStringList(_keyCartItems, encoded);
   }
 
   static Future<void> addCartItem(Map<String, dynamic> newItem) async {
     final items = await getCartItems();
 
-    final productId = (newItem['productId'] ?? '').toString();
-    final size = (newItem['size'] ?? '').toString();
-    final quantityToAdd = (newItem['quantity'] as num?)?.toInt() ?? 1;
+    final sanitizedNewItem = sanitizeCartItem(newItem);
+    if (sanitizedNewItem == null) {
+      return;
+    }
+
+    final productId = sanitizedNewItem['productId'].toString();
+    final size = sanitizedNewItem['size'].toString();
+    final quantityToAdd = _parseQuantity(sanitizedNewItem['quantity']);
 
     final index = items.indexWhere(
       (item) =>
@@ -83,10 +188,10 @@ class PrefHelpers {
     );
 
     if (index >= 0) {
-      final current = (items[index]['quantity'] as num?)?.toInt() ?? 1;
+      final current = _parseQuantity(items[index]['quantity']);
       items[index]['quantity'] = current + quantityToAdd;
     } else {
-      items.add(newItem);
+      items.add(sanitizedNewItem);
     }
 
     await saveCartItems(items);
@@ -98,10 +203,12 @@ class PrefHelpers {
     int quantity,
   ) async {
     final items = await getCartItems();
+    final normalizedProductId = productId.trim();
+    final normalizedSize = size.trim();
     final index = items.indexWhere(
       (item) =>
-          item['productId'].toString() == productId &&
-          item['size'].toString() == size,
+          item['productId'].toString() == normalizedProductId &&
+          item['size'].toString() == normalizedSize,
     );
 
     if (index < 0) {
@@ -119,10 +226,12 @@ class PrefHelpers {
 
   static Future<void> removeCartItem(String productId, String size) async {
     final items = await getCartItems();
+    final normalizedProductId = productId.trim();
+    final normalizedSize = size.trim();
     items.removeWhere(
       (item) =>
-          item['productId'].toString() == productId &&
-          item['size'].toString() == size,
+          item['productId'].toString() == normalizedProductId &&
+          item['size'].toString() == normalizedSize,
     );
     await saveCartItems(items);
   }

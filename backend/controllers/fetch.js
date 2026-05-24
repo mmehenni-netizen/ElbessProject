@@ -33,12 +33,23 @@ const normalizeProductImages = (product) => {
 
 export const getProducts = async (req, res) => {
   try {
+    // Debug: log incoming query params
+    try {
+      // eslint-disable-next-line no-console
+      console.log('getProducts called with query:', req.query);
+    } catch (_) {}
+
     if (!req.query.categories) {
       const fetchedProducts = await productModel
         .find()
         .sort({ rating: -1 })
-        .limit(4)
         .populate("store");
+
+      // Debug: log number of fetched products
+      try {
+        // eslint-disable-next-line no-console
+        console.log('getProducts -> fetchedProducts length:', fetchedProducts.length);
+      } catch (_) {}
 
       if (!fetchedProducts || fetchedProducts.length === 0) {
         throw new Error("No products found !");
@@ -58,8 +69,13 @@ export const getProducts = async (req, res) => {
       const fetchedProducts = await productModel
         .find({ category: { $in: categories } })
         .sort({ rating: -1 })
-        .limit(4)
         .populate("store");
+
+      // Debug: log number of fetched products for categories
+      try {
+        // eslint-disable-next-line no-console
+        console.log('getProducts (categories) -> fetchedProducts length:', fetchedProducts.length, 'categories:', categories);
+      } catch (_) {}
 
       if (!fetchedProducts || fetchedProducts.length === 0) {
         throw new Error(
@@ -158,15 +174,15 @@ export const getOrders = async (req, res) => {
       .findById(req.user._id)
       .populate({ path: "orders", populate: { path: "product" } });
 
+    if (!user) {
+      throw new Error("User not found !");
+    }
+
     const orders = user.orders;
 
     let total = 0;
 
-    if (!orders || orders.length === 0) {
-      throw new Error("No orders found !");
-    }
-
-    for (let i = 0; i < orders.length; i++) {
+    for (let i = 0; i < (orders?.length || 0); i++) {
       const unitPrice = Number.isFinite(Number(orders[i].price))
         ? Number(orders[i].price)
         : orders[i].product.price;
@@ -194,14 +210,14 @@ export const getFavorites = async (req, res) => {
       .findById(req.user._id)
       .populate({ path: "favorites", populate: { path: "store" } });
 
-    if (!user.favorites || user.favorites.length === 0) {
-      throw new Error("No favorites found !");
+    if (!user) {
+      throw new Error("User not found !");
     }
 
     res.status(200).json({
       success: true,
       message: "Favorites fetched successfully !",
-      favorites: user.favorites,
+      favorites: (user.favorites || []).map(normalizeProductImages),
     });
   } catch (error) {
     return res.status(500).json({

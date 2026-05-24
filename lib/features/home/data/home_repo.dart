@@ -85,11 +85,28 @@ class HomeRepo {
     try {
       final response = await _apiService.get('/fetch/get-products');
 
+      // Debug: log full response for troubleshooting
+      try {
+        // ignore: avoid_print
+        print('HomeRepo.getProducts -> raw response: $response');
+      } catch (_) {}
+
       if (response is! Map<String, dynamic>) {
         return <ProductModel>[];
       }
 
       final rawProducts = response['products'];
+
+      // Debug: log rawProducts type and length (when possible)
+      try {
+        // ignore: avoid_print
+        print('HomeRepo.getProducts -> rawProducts type: ${rawProducts.runtimeType}');
+        if (rawProducts is List) {
+          // ignore: avoid_print
+          print('HomeRepo.getProducts -> rawProducts length: ${rawProducts.length}');
+        }
+      } catch (_) {}
+
       if (rawProducts is! List) {
         return <ProductModel>[];
       }
@@ -99,6 +116,12 @@ class HomeRepo {
           .map(_normalizeProductJson)
           .map(ProductModel.fromJson)
           .toList();
+
+      // Debug: log normalized products count
+      try {
+        // ignore: avoid_print
+        print('HomeRepo.getProducts -> normalizedProducts length: ${normalizedProducts.length}');
+      } catch (_) {}
 
       return normalizedProducts;
     } catch (e) {

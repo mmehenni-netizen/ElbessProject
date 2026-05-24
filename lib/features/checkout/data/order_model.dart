@@ -53,13 +53,61 @@ class OrderModel {
     this.cancellationDate,
   });
 
+  static String _readId(dynamic value) {
+    if (value is Map) {
+      final nestedId = value['_id'];
+      return nestedId?.toString() ?? '';
+    }
+    return value?.toString() ?? '';
+  }
+
+  static int _readInt(dynamic value, {int fallback = 0}) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  static double _readDouble(dynamic value, {double fallback = 0}) {
+    if (value is double) {
+      return value;
+    }
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  static bool _readBool(dynamic value) {
+    if (value is bool) {
+      return value;
+    }
+
+    final normalized = value?.toString().trim().toLowerCase() ?? '';
+    return normalized == 'true' || normalized == '1';
+  }
+
+  static DateTime? _readDate(dynamic value) {
+    if (value is DateTime) {
+      return value;
+    }
+    if (value is String && value.trim().isNotEmpty) {
+      return DateTime.tryParse(value);
+    }
+    return null;
+  }
+
   /// Create an OrderModel from a JSON map (e.g. API response)
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     final productJson = json['product'] is Map<String, dynamic>
         ? json['product'] as Map<String, dynamic>
         : null;
 
-    final rawImage = productJson?['image'] ?? productJson?['imageUrl'];
+    final rawImage =
+        productJson?['image'] ?? productJson?['imageUrl'] ?? productJson?['imageUrls'];
     final productImageUrl = rawImage is List
         ? rawImage.whereType<String>().firstWhere(
             (item) => item.trim().isNotEmpty,
@@ -68,41 +116,34 @@ class OrderModel {
         : rawImage?.toString() ?? '';
 
     return OrderModel(
-      id: json['_id'] as String,
-      userId: json['user'] is Map ? json['user']['_id'] as String : json['user'] as String,
-      storeId: json['store'] is Map ? json['store']['_id'] as String : json['store'] as String,
-      productId: json['product'] is Map ? json['product']['_id'] as String : json['product'] as String,
+      id: _readId(json['_id']),
+      userId: _readId(json['user']),
+      storeId: _readId(json['store']),
+      productId: _readId(json['product']),
       productName: productJson?['name']?.toString() ?? '',
       productImageUrl: productImageUrl.trim(),
-      productPrice: (json['price'] as num?)?.toDouble() ?? (productJson?['price'] as num?)?.toDouble() ?? 0,
-      quantity: json['quantity'] as int,
+      productPrice: _readDouble(
+        json['price'],
+        fallback: _readDouble(productJson?['price']),
+      ),
+      quantity: _readInt(json['quantity'], fallback: 1),
       size: (json['size'] as String?) ?? '',
       name: (json['name'] as String?) ?? '',
       location: (json['location'] as String?) ?? '',
       numero: (json['numero'] as String?) ?? '',
-      office: json['office'] as bool,
-      domicile: json['domicile'] as bool,
-      confirmed: json['confirmed'] as bool? ?? false,
-      rejected: json['rejected'] as bool? ?? false,
-      prepared: json['prepared'] as bool? ?? false,
-      shipped: json['shipped'] as bool? ?? false,
-      delivered: json['delivered'] as bool? ?? false,
-      canceled: json['canceled'] as bool? ?? false,
-      confirmationDate: json['confirmationDate'] != null
-          ? DateTime.parse(json['confirmationDate'] as String)
-          : null,
-      preparationDate: json['preparationDate'] != null
-          ? DateTime.parse(json['preparationDate'] as String)
-          : null,
-      shippingDate: json['shippingDate'] != null
-          ? DateTime.parse(json['shippingDate'] as String)
-          : null,
-      deliveryDate: json['deliveryDate'] != null
-          ? DateTime.parse(json['deliveryDate'] as String)
-          : null,
-      cancellationDate: json['cancellationDate'] != null
-          ? DateTime.parse(json['cancellationDate'] as String)
-          : null,
+      office: _readBool(json['office']),
+      domicile: _readBool(json['domicile']),
+      confirmed: _readBool(json['confirmed']),
+      rejected: _readBool(json['rejected']),
+      prepared: _readBool(json['prepared']),
+      shipped: _readBool(json['shipped']),
+      delivered: _readBool(json['delivered']),
+      canceled: _readBool(json['canceled']),
+      confirmationDate: _readDate(json['confirmationDate']),
+      preparationDate: _readDate(json['preparationDate']),
+      shippingDate: _readDate(json['shippingDate']),
+      deliveryDate: _readDate(json['deliveryDate']),
+      cancellationDate: _readDate(json['cancellationDate']),
     );
   }
 

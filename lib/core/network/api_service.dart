@@ -7,26 +7,44 @@ class ApiService {
 
 Future<dynamic> get(String endpoint)async{
  try{
- final response=await _dioClient.dio.get(endpoint);
-  return response.data;
-  
+    // Debug: log GET endpoint
+    try{
+      // ignore: avoid_print
+      print('ApiService.get -> endpoint=$endpoint');
+    }catch(_){ }
 
- }on DioException catch (e){
- return ApiException.handleError(e);
- }
+    final response=await _dioClient.dio.get(endpoint);
+    try{
+      // ignore: avoid_print
+      print('ApiService.get -> response=${response.data}');
+    }catch(_){ }
+
+    return response.data;
+  }on DioException catch (e){
+    return ApiException.handleError(e);
+  }
 }
 
 
 
 Future<dynamic> post(String endpoint, dynamic body)async{
  try{
- final response=await _dioClient.dio.post(endpoint,data : body);
-  return response.data;
-  
+    // Debug: log POST endpoint and body
+    try{
+      // ignore: avoid_print
+      print('ApiService.post -> endpoint=$endpoint body=${body}');
+    }catch(_){ }
 
- }on DioException catch (e){
- return ApiException.handleError(e);
- }
+    final response=await _dioClient.dio.post(endpoint,data : body);
+    try{
+      // ignore: avoid_print
+      print('ApiService.post -> response=${response.data}');
+    }catch(_){ }
+
+    return response.data;
+  }on DioException catch (e){
+    return ApiException.handleError(e);
+  }
 }
 
 Future<dynamic> put(String endpoint, dynamic body)async{

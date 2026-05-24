@@ -91,7 +91,7 @@ class _CheckoutBodyState extends State<CheckoutBody> {
 
     setState(() {
       _profileUser = profile?.user;
-      _items = cartItems;
+      _items = PrefHelpers.sanitizeCartItems(cartItems);
       _isLoading = false;
       _shouldRemovePurchasedItemsFromCart = payloadItems != null
           ? ((payload?['fromCart'] as bool?) ?? false)
@@ -106,20 +106,19 @@ class _CheckoutBodyState extends State<CheckoutBody> {
 
     final rawItems = payload['items'];
     if (rawItems is List) {
-      return rawItems
-          .whereType<Map>()
-          .map(
-            (item) => item.map(
-              (key, value) => MapEntry(key.toString(), value),
-            ),
-          )
-          .toList();
+      return PrefHelpers.sanitizeCartItems(
+        rawItems.whereType<Map>().map(
+          (item) => item.map(
+            (key, value) => MapEntry(key.toString(), value),
+          ),
+        ),
+      );
     }
 
     if ((payload['productId'] ?? '').toString().trim().isNotEmpty) {
-      return <Map<String, dynamic>>[
+      return PrefHelpers.sanitizeCartItems(<Map<String, dynamic>>[
         payload.map((key, value) => MapEntry(key.toString(), value)),
-      ];
+      ]);
     }
 
     return null;
@@ -130,13 +129,23 @@ class _CheckoutBodyState extends State<CheckoutBody> {
       return;
     }
 
+    final validItems = PrefHelpers.sanitizeCartItems(_items);
+    if (validItems.isEmpty) {
+      AppSnackBar.show(
+        context,
+        'No valid items available for checkout.',
+        backgroundColor: Colors.red.shade600,
+      );
+      return;
+    }
+
     setState(() {
       _isPlacingOrder = true;
     });
 
     try {
       await _orderRepo.checkout(
-        orders: _items,
+        orders: validItems,
         office: _isOfficeSelected,
         domicile: _isDomicileSelected,
         name: _profileDisplayName,
@@ -145,7 +154,7 @@ class _CheckoutBodyState extends State<CheckoutBody> {
       );
 
       if (_shouldRemovePurchasedItemsFromCart) {
-        for (final item in _items) {
+        for (final item in validItems) {
           await PrefHelpers.removeCartItem(
             (item['productId'] ?? '').toString(),
             (item['size'] ?? '').toString(),

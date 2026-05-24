@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart' show BaseOptions, Dio, InterceptorsWrapper;
-import 'package:flutter/foundation.dart';
+import 'package:elbess/core/network/network_config.dart';
 import 'package:elbess/core/utils/pref_helpers.dart';
 
 class DioClient {
@@ -14,6 +14,14 @@ class DioClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await PrefHelpers.getToken();
+          // Debug: log resolved base URL and token presence
+          try {
+            // ignore: avoid_print
+            print('DioClient: baseUrl=${options.baseUrl}');
+            // ignore: avoid_print
+            print('DioClient: token present=${token != null && token.isNotEmpty}');
+          } catch (_) {}
+
           if (token != null && token.isNotEmpty) {
             options.headers["Authorization"] = "Bearer $token";
           }
@@ -25,19 +33,32 @@ class DioClient {
   Dio get dio => _dio;
 
   static String _resolveBaseUrl() {
-    const overrideBaseUrl = String.fromEnvironment('API_BASE_URL');
+    final overrideBaseUrl = String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: '',
+    ).trim();
+
     if (overrideBaseUrl.isNotEmpty) {
-      return overrideBaseUrl;
+      return _normalizeBaseUrl(overrideBaseUrl);
     }
 
-    if (kIsWeb) {
-      return 'http://localhost:5000/api';
+    return apiBaseUrl;
+  }
+
+  static String _normalizeBaseUrl(String baseUrl) {
+    final uri = Uri.tryParse(baseUrl);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      return baseUrl;
     }
 
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:5000/api';
+    // Android emulators cannot reach the host machine through localhost.
+    // Map loopback hosts to the standard emulator host.
+    final isAndroidEmulator = uri.scheme == 'http' || uri.scheme == 'https';
+    final host = uri.host;
+    if (isAndroidEmulator && (host == 'localhost' || host == '127.0.0.1')) {
+      return uri.replace(host: '10.0.2.2').toString();
     }
 
-    return 'http://localhost:5000/api';
+    return baseUrl;
   }
 }

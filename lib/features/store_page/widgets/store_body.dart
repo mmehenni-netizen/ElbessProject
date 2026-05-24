@@ -1,4 +1,6 @@
 import 'package:elbess/core/constants/colors.dart';
+import 'package:elbess/core/network/network_config.dart';
+import 'package:elbess/core/utils/pref_helpers.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/features/home/data/store_model.dart';
 import 'package:elbess/features/home/widgets/item_card.dart';
@@ -23,12 +25,40 @@ class _StoreBodyState extends State<StoreBody> {
   StoreModel? _store;
   bool _isLoading = true;
   int _selectedCategoryIndex = 0;
+  Set<String> _favoriteProductIds = <String>{};
 
   @override
   void initState() {
     super.initState();
     _store = widget.initialStore;
+    _loadFavorites();
     _loadStore();
+  }
+
+  Future<void> _loadFavorites() async {
+    final ids = await PrefHelpers.getFavoriteProductIds();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _favoriteProductIds = ids.toSet();
+    });
+  }
+
+  Future<void> _toggleFavorite(String productId) async {
+    final isFavoriteNow = await PrefHelpers.toggleFavoriteProductId(productId);
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      if (isFavoriteNow) {
+        _favoriteProductIds.add(productId);
+      } else {
+        _favoriteProductIds.remove(productId);
+      }
+    });
   }
 
   Future<void> _loadStore() async {
@@ -80,15 +110,7 @@ class _StoreBodyState extends State<StoreBody> {
       return trimmed;
     }
 
-    if (trimmed.startsWith('/uploads/')) {
-      return 'http://10.0.2.2:5000$trimmed';
-    }
-
-    if (trimmed.startsWith('uploads/')) {
-      return 'http://10.0.2.2:5000/$trimmed';
-    }
-
-    return trimmed;
+    return resolveNetworkUrl(trimmed);
   }
 
   Widget _buildStoreLogo(String rawPath) {
@@ -103,7 +125,8 @@ class _StoreBodyState extends State<StoreBody> {
         width: 42,
         height: 42,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const Icon(Icons.storefront_outlined, color: Colors.grey),
+        errorBuilder: (_, __, ___) =>
+            const Icon(Icons.storefront_outlined, color: Colors.grey),
       );
     }
 
@@ -112,7 +135,8 @@ class _StoreBodyState extends State<StoreBody> {
       width: 42,
       height: 42,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => const Icon(Icons.storefront_outlined, color: Colors.grey),
+      errorBuilder: (_, __, ___) =>
+          const Icon(Icons.storefront_outlined, color: Colors.grey),
     );
   }
 
@@ -123,37 +147,43 @@ class _StoreBodyState extends State<StoreBody> {
     }
 
     final categories = _categories;
-    if (_selectedCategoryIndex <= 0 || _selectedCategoryIndex >= categories.length) {
+    if (_selectedCategoryIndex <= 0 ||
+        _selectedCategoryIndex >= categories.length) {
       return products;
     }
 
     final selectedCategory = categories[_selectedCategoryIndex];
     return products
-        .where((product) => product.category.trim().toLowerCase() == selectedCategory.toLowerCase())
+        .where(
+          (product) =>
+              product.category.trim().toLowerCase() ==
+              selectedCategory.toLowerCase(),
+        )
         .toList();
   }
 
   List<String> get _categories {
-    final productCategories = (_store?.products ?? <ProductModel>[])
-        .map((product) => product.category.trim())
-        .where((category) => category.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+    final productCategories =
+        (_store?.products ?? <ProductModel>[])
+            .map((product) => product.category.trim())
+            .where((category) => category.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
 
     return <String>['All', ...productCategories];
   }
 
-  void _openProduct(ProductModel product) {
-    Navigator.push(
+  Future<void> _openProduct(ProductModel product) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ProductDetailView(
-          productId: product.id,
-          initialProduct: product,
-        ),
+        builder: (context) =>
+            ProductDetailView(productId: product.id, initialProduct: product),
       ),
     );
+
+    await _loadFavorites();
   }
 
   @override
@@ -170,7 +200,11 @@ class _StoreBodyState extends State<StoreBody> {
         ),
         title: const Text(
           'Store',
-          style: TextStyle(fontFamily: 'semi', color: Colors.black, fontSize: 24),
+          style: TextStyle(
+            fontFamily: 'semi',
+            color: Colors.black,
+            fontSize: 24,
+          ),
         ),
         centerTitle: true,
       ),
@@ -180,7 +214,10 @@ class _StoreBodyState extends State<StoreBody> {
               onRefresh: _loadStore,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 10,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -209,7 +246,9 @@ class _StoreBodyState extends State<StoreBody> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                store?.name.isNotEmpty == true ? store!.name : 'Unknown store',
+                                store?.name.isNotEmpty == true
+                                    ? store!.name
+                                    : 'Unknown store',
                                 style: const TextStyle(
                                   fontFamily: 'semi',
                                   color: Colors.black,
@@ -218,7 +257,9 @@ class _StoreBodyState extends State<StoreBody> {
                               ),
                               const Gap(4),
                               Text(
-                                store?.location.isNotEmpty == true ? '📍${store!.location}' : 'No location available',
+                                store?.location.isNotEmpty == true
+                                    ? '📍${store!.location}'
+                                    : 'No location available',
                                 style: const TextStyle(
                                   fontFamily: 'regular',
                                   color: Colors.black,
@@ -242,34 +283,59 @@ class _StoreBodyState extends State<StoreBody> {
                     const Gap(24),
                     const Text(
                       'Description',
-                      style: TextStyle(fontFamily: 'bold', color: Colors.black, fontSize: 22),
+                      style: TextStyle(
+                        fontFamily: 'bold',
+                        color: Colors.black,
+                        fontSize: 22,
+                      ),
                     ),
                     const Gap(6),
                     Text(
                       store?.description.isNotEmpty == true
                           ? store!.description
                           : 'No description available for this store.',
-                      style: const TextStyle(fontFamily: 'medium', color: Colors.grey, fontSize: 12),
+                      style: const TextStyle(
+                        fontFamily: 'medium',
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
                     ),
                     const Gap(20),
                     const Text(
                       'Statistics',
-                      style: TextStyle(fontFamily: 'bold', color: Colors.black, fontSize: 22),
+                      style: TextStyle(
+                        fontFamily: 'bold',
+                        color: Colors.black,
+                        fontSize: 22,
+                      ),
                     ),
                     const Gap(14),
                     Row(
                       children: [
-                        _StatCard(label: 'Products', value: '${store?.products.length ?? 0}'),
+                        _StatCard(
+                          label: 'Products',
+                          value: '${store?.products.length ?? 0}',
+                        ),
                         const Gap(10),
-                        _StatCard(label: 'Orders', value: '${store?.totalOrders ?? 0}'),
+                        _StatCard(
+                          label: 'Orders',
+                          value: '${store?.totalOrders ?? 0}',
+                        ),
                         const Gap(10),
-                        _StatCard(label: 'Rating', value: '${store?.rating ?? 0}'),
+                        _StatCard(
+                          label: 'Rating',
+                          value: '${store?.rating ?? 0}',
+                        ),
                       ],
                     ),
                     const Gap(18),
                     const Text(
                       'Our Products',
-                      style: TextStyle(fontFamily: 'bold', color: Colors.black, fontSize: 22),
+                      style: TextStyle(
+                        fontFamily: 'bold',
+                        color: Colors.black,
+                        fontSize: 22,
+                      ),
                     ),
                     const Gap(10),
                     SingleChildScrollView(
@@ -287,19 +353,28 @@ class _StoreBodyState extends State<StoreBody> {
                             },
                             child: Container(
                               margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
-                                color: isSelected ? AppColors.primary : Colors.white,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : Colors.grey.shade300,
                                 ),
                               ),
                               child: Text(
                                 category,
                                 style: TextStyle(
                                   fontFamily: 'medium',
-                                  color: isSelected ? Colors.white : Colors.black,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.black,
                                   fontSize: 12,
                                 ),
                               ),
@@ -315,36 +390,43 @@ class _StoreBodyState extends State<StoreBody> {
                             child: Center(
                               child: Text(
                                 'No products available for this store.',
-                                style: TextStyle(fontFamily: 'medium', color: Colors.grey),
+                                style: TextStyle(
+                                  fontFamily: 'medium',
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                           )
                         : GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              mainAxisExtent: 215,
-                            ),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                  mainAxisExtent: 215,
+                                ),
                             itemCount: products.length,
                             itemBuilder: (context, index) {
                               final product = products[index];
                               final productImage = product.imageUrl.isNotEmpty
                                   ? product.imageUrl
-                                  : (product.imageUrls.isNotEmpty ? product.imageUrls.first : '');
+                                  : (product.imageUrls.isNotEmpty
+                                        ? product.imageUrls.first
+                                        : '');
 
-                              return GestureDetector(
-                                onTap: () => _openProduct(product),
-                                child: ItemCard(
-                                  imagePath: productImage,
-                                  storeName: store?.name ?? '',
-                                  itemName: product.name,
-                                  price: product.price.toStringAsFixed(2),
-                                  rating: product.rating.toString(),
-                                  isFavorite: false,
+                              return ItemCard(
+                                imagePath: productImage,
+                                storeName: store?.name ?? '',
+                                itemName: product.name,
+                                price: product.price.toStringAsFixed(2),
+                                rating: product.rating.toString(),
+                                isFavorite: _favoriteProductIds.contains(
+                                  product.id,
                                 ),
+                                onTap: () => _openProduct(product),
+                                onFavoriteTap: () => _toggleFavorite(product.id),
                               );
                             },
                           ),

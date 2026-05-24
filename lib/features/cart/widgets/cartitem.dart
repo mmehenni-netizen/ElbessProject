@@ -1,5 +1,5 @@
 import 'package:elbess/core/constants/colors.dart';
-import 'package:flutter/foundation.dart';
+import 'package:elbess/core/network/network_config.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -33,20 +33,7 @@ class _CartitemState extends State<Cartitem> {
   late int quantity;
 
   String _resolveImageUrl(String rawPath) {
-    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
-      return rawPath;
-    }
-
-    if (rawPath.startsWith('/')) {
-      final host = kIsWeb
-          ? 'http://localhost:5000'
-          : defaultTargetPlatform == TargetPlatform.android
-              ? 'http://10.0.2.2:5000'
-              : 'http://localhost:5000';
-      return '$host$rawPath';
-    }
-
-    return rawPath;
+    return resolveNetworkUrl(rawPath);
   }
 
   Widget _buildImage(String rawPath) {
@@ -153,7 +140,7 @@ class _CartitemState extends State<Cartitem> {
                                       color: Colors.black,
                                     ),
                                   ),
-                              ),
+                                ),
                                 IconButton(
                                   onPressed: widget.onDelete,
                                   splashRadius: 18,
@@ -197,7 +184,9 @@ class _CartitemState extends State<Cartitem> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16 * scale),
-                                border: Border.all(color: const Color(0xFFE0D8D1)),
+                                border: Border.all(
+                                  color: const Color(0xFFE0D8D1),
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -208,7 +197,9 @@ class _CartitemState extends State<Cartitem> {
                                         setState(() {
                                           quantity--;
                                         });
-                                        widget.onQuantityChanged?.call(quantity);
+                                        widget.onQuantityChanged?.call(
+                                          quantity,
+                                        );
                                       }
                                     },
                                   ),
@@ -263,10 +254,7 @@ class _CartitemState extends State<Cartitem> {
 }
 
 class _QuantityButton extends StatelessWidget {
-  const _QuantityButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _QuantityButton({required this.icon, required this.onTap});
 
   final IconData icon;
   final VoidCallback onTap;
@@ -278,11 +266,7 @@ class _QuantityButton extends StatelessWidget {
       child: SizedBox(
         width: 40,
         height: 32,
-        child: Icon(
-          icon,
-          size: 18,
-          color: Colors.black87,
-        ),
+        child: Icon(icon, size: 18, color: Colors.black87),
       ),
     );
   }

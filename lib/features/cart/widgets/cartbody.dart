@@ -32,7 +32,12 @@ class _CartbodyState extends State<Cartbody> {
       _isLoading = true;
     });
 
-    final items = await PrefHelpers.getCartItems();
+    List<Map<String, dynamic>> items = <Map<String, dynamic>>[];
+    try {
+      items = await PrefHelpers.getCartItems();
+    } catch (_) {
+      items = <Map<String, dynamic>>[];
+    }
 
     if (!mounted) {
       return;
@@ -45,13 +50,29 @@ class _CartbodyState extends State<Cartbody> {
   }
 
   Future<void> _updateQuantity(int index, int quantity) async {
+    if (index < 0 || index >= _items.length) {
+      return;
+    }
+
     final item = _items[index];
     final productId = (item['productId'] ?? '').toString();
     final size = (item['size'] ?? '').toString();
     await PrefHelpers.updateCartItemQuantity(productId, size, quantity);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _items[index]['quantity'] = quantity;
+    });
   }
 
   Future<void> _removeItem(int index) async {
+    if (index < 0 || index >= _items.length) {
+      return;
+    }
+
     final item = _items[index];
     final productId = (item['productId'] ?? '').toString();
     final size = (item['size'] ?? '').toString();
@@ -103,6 +124,8 @@ class _CartbodyState extends State<Cartbody> {
                             itemCount: visibleItems.length,
                             itemBuilder: (context, index) {
                               final item = visibleItems[index];
+                              final price = (item['price'] as num?)?.toDouble() ?? 0;
+                              final quantity = (item['quantity'] as num?)?.toInt() ?? 1;
                               return Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 2),
                                 child: Cartitem(
@@ -110,8 +133,8 @@ class _CartbodyState extends State<Cartbody> {
                                   prdctname: (item['name'] ?? 'Product').toString(),
                                   size: (item['size'] ?? 'M').toString(),
                                   color: (item['storeName'] ?? 'Store').toString(),
-                                  price: (item['price'] as num?)?.toDouble() ?? 0,
-                                  initialQuantity: (item['quantity'] as num?)?.toInt() ?? 1,
+                                  price: price,
+                                  initialQuantity: quantity,
                                   onDelete: () => _removeItem(index),
                                   onQuantityChanged: (quantity) => _updateQuantity(index, quantity),
                                 ),
@@ -162,18 +185,22 @@ class _CartbodyState extends State<Cartbody> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        onPressed: _isLoading || _items.isEmpty ? null : () {
-                          Navigator.push(
+                        onPressed: _isLoading || _items.isEmpty ? null : () async {
+                          final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => CheckoutView(
                                 orderPayload: <String, dynamic>{
-                                  'items': _items,
+                                  'items': List<Map<String, dynamic>>.from(_items),
                                   'fromCart': true,
                                 },
                               ),
                             ),
                           );
+
+                          if (result == true) {
+                            await _loadCart();
+                          }
                         },
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

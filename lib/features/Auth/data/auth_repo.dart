@@ -29,6 +29,8 @@ class AuthRepo {
       if (response['success'] == true) {
         final token = response['token'];
         if (token is String && token.isNotEmpty) {
+          // clear local user-scoped data before saving the new token
+          await PrefHelpers.clearUserData();
           await PrefHelpers.saveToken(token);
         }
         return UserModel.fromJson(response);
@@ -47,10 +49,22 @@ class AuthRepo {
 
   Future<UserModel?> login(String email, String password) async {
     try {
+      // Debug: log login attempt (avoid printing passwords)
+      try {
+        // ignore: avoid_print
+        print('AuthRepo.login: email=$email');
+      } catch (_) {}
+
       final response = await apiService.post('/auth/login', {
         'email': email.trim().toLowerCase(),
         'password': password,
       });
+
+      // Debug: log raw response from API
+      try {
+        // ignore: avoid_print
+        print('AuthRepo.login: response=${response}');
+      } catch (_) {}
 
       if (response is ApiError) {
         throw response;
@@ -63,6 +77,7 @@ class AuthRepo {
       if (response['success'] == true) {
         final token = response['token'];
         if (token is String && token.isNotEmpty) {
+          await PrefHelpers.clearUserData();
           await PrefHelpers.saveToken(token);
         }
         return UserModel.fromJson(response);
@@ -96,6 +111,7 @@ class AuthRepo {
       if (response['success'] == true) {
         final token = response['token'];
         if (token is String && token.isNotEmpty) {
+          await PrefHelpers.clearUserData();
           await PrefHelpers.saveToken(token);
         }
         return UserModel.fromJson(response);

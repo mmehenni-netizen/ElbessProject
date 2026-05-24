@@ -1,5 +1,5 @@
 import 'package:elbess/core/constants/colors.dart';
-import 'package:flutter/foundation.dart';
+import 'package:elbess/core/network/network_config.dart';
 import 'package:flutter/material.dart';
 
 class Favoritecard extends StatelessWidget {
@@ -33,26 +33,10 @@ class Favoritecard extends StatelessWidget {
       return '';
     }
 
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-
-    if (trimmed.startsWith('/')) {
-      final host = kIsWeb
-          ? 'http://localhost:5000'
-          : defaultTargetPlatform == TargetPlatform.android
-              ? 'http://10.0.2.2:5000'
-              : 'http://localhost:5000';
-      return '$host$trimmed';
-    }
-
-    if (trimmed.startsWith('uploads/')) {
-      final host = kIsWeb
-          ? 'http://localhost:5000'
-          : defaultTargetPlatform == TargetPlatform.android
-              ? 'http://10.0.2.2:5000'
-              : 'http://localhost:5000';
-      return '$host/$trimmed';
+    final resolvedNetworkPath = resolveNetworkUrl(trimmed);
+    if (resolvedNetworkPath.startsWith('http://') ||
+        resolvedNetworkPath.startsWith('https://')) {
+      return resolvedNetworkPath;
     }
 
     if (trimmed.startsWith('assets/')) {
@@ -123,7 +107,7 @@ class Favoritecard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14 * scale),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10* scale),
+                      borderRadius: BorderRadius.circular(10 * scale),
                       child: _buildImage(img),
                     ),
                   ),
@@ -210,11 +194,7 @@ class Favoritecard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Icon(
-                    Icons.add,
-                    color: AppColors.primary,
-                    size: 20 * scale,
-                  ),
+                  Icon(Icons.add, color: AppColors.primary, size: 20 * scale),
                 ],
               ),
             ],
