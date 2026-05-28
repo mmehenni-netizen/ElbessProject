@@ -123,6 +123,10 @@ Future<ProductModel?> getProductDetails(String productId) async {
     required int rating,
   }) async {
     try {
+      // Log request body for debugging
+      try {
+        debugPrint('rateProduct -> request body: ${<String, dynamic>{'productId': productId.trim(), 'rating': rating}}');
+      } catch (_) {}
       final response = await _apiService.post('/actions/rate', <String, dynamic>{
         'productId': productId.trim(),
         'rating': rating,
