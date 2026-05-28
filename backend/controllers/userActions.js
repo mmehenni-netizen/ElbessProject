@@ -125,6 +125,10 @@ export const setFavorite = async (req, res) => {
 export const rate = async (req, res) => {
   console.log('Rate handler request body:', req.body);
   console.log('Rate handler content-type:', req.headers['content-type']);
+  try {
+    console.log('Rate handler body JSON:', JSON.stringify(req.body));
+  } catch (_) {}
+  console.log('Has productId property:', Object.prototype.hasOwnProperty.call(req.body || {}, 'productId'));
   const { storeId, productId, rating } = req.body || {};
   console.log('Rate handler parsed values:', { storeId, productId, rating });
   console.log('Rate handler parsed types:', typeof storeId, typeof productId, typeof rating);
