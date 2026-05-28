@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
-import 'package:model_viewer_plus/model_viewer_plus.dart';
 
 class OptionsBody extends StatefulWidget {
   const OptionsBody({super.key});
@@ -15,13 +14,103 @@ class OptionsBody extends StatefulWidget {
 }
 
 class _OptionsBodyState extends State<OptionsBody> {
-  bool get _supports3dViewer {
-    if (kIsWeb) {
-      return true;
-    }
+  void _openLogin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LoginView(),
+      ),
+    );
+  }
 
-    return defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS;
+  void _openSignup() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SignupView(),
+      ),
+    );
+  }
+
+  Widget _buildChoiceButton({
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    required Color accentColor,
+    required IconData icon,
+    bool filled = false,
+  }) {
+    return Material(
+      color: filled ? accentColor : Colors.white,
+      elevation: filled ? 8 : 0,
+      shadowColor: Colors.black12,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: filled ? accentColor : const Color(0xFFE8D8CB),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: filled
+                      ? Colors.white.withValues(alpha: 0.16)
+                      : const Color(0xFFF8F3EE),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: filled ? Colors.white : accentColor,
+                  size: 22,
+                ),
+              ),
+              const Gap(14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontFamily: 'bold',
+                        fontSize: 17,
+                        color: filled ? Colors.white : const Color(0xFF1C140F),
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontFamily: 'medium',
+                        fontSize: 12,
+                        height: 1.35,
+                        color: filled
+                            ? Colors.white.withValues(alpha: 0.88)
+                            : const Color(0xFF725A4A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Gap(12),
+              Icon(
+                Icons.arrow_forward_rounded,
+                color: filled ? Colors.white : accentColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -30,7 +119,6 @@ class _OptionsBodyState extends State<OptionsBody> {
     final bool isTablet = size.width >= 600;
     final double horizontalPadding =
         (size.width * 0.08).clamp(20.0, 48.0).toDouble();
-    final double modelHeight = isTablet ? 400 : 300;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F3EE),
@@ -110,7 +198,7 @@ class _OptionsBodyState extends State<OptionsBody> {
                 const Gap(24),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.94),
                     borderRadius: BorderRadius.circular(30),
@@ -124,171 +212,84 @@ class _OptionsBodyState extends State<OptionsBody> {
                     ],
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFF7F1),
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: const Color(0xFFE6C8B5),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF7F1),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: const Color(0xFFE6C8B5),
+                                  ),
+                                ),
+                                child: Text(
+                                  'WELCOME',
+                                  style: TextStyle(
+                                    fontFamily: 'semi',
+                                    fontSize: 12,
+                                    letterSpacing: 1.0,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
                               ),
-                            ),
-                            child: Text(
-                              '3D PREVIEW',
-                              style: TextStyle(
-                                fontFamily: 'semi',
-                                fontSize: 13,
-                                letterSpacing: 1.0,
+                              const Spacer(),
+                              Icon(
+                                Icons.verified_rounded,
                                 color: AppColors.primary,
+                                size: 20,
                               ),
+                            ],
+                          ),
+                          const Gap(16),
+                          Text(
+                            'Choose how you want to start.',
+                            style: TextStyle(
+                              fontSize: isTablet ? 24 : 20,
+                              height: 1.15,
+                              fontFamily: 'bold',
+                              color: const Color(0xFF1C140F),
                             ),
                           ),
-                          const Spacer(),
+                          const Gap(10),
                           Text(
-                            'Drag to rotate',
+                            'Sign in to continue your shopping or create a new account in a few taps.',
                             style: TextStyle(
+                              fontSize: isTablet ? 16 : 14,
+                              height: 1.5,
                               fontFamily: 'regular',
-                              fontSize: 12,
-                              color: AppColors.primary.withValues(alpha: 0.8),
+                              color: const Color(0xFF725A4A),
                             ),
+                          ),
+                          const Gap(20),
+                          _buildChoiceButton(
+                            title: 'Log In',
+                            subtitle:
+                                'Access your favorites, orders, and profile.',
+                            onTap: _openLogin,
+                            accentColor: AppColors.primary,
+                            icon: Icons.login_rounded,
+                            filled: true,
+                          ),
+                          const Gap(12),
+                          _buildChoiceButton(
+                            title: 'Sign Up',
+                            subtitle:
+                                'Create a new account and start shopping now.',
+                            onTap: _openSignup,
+                            accentColor: AppColors.primary,
+                            icon: Icons.person_add_alt_1_rounded,
+                            filled: false,
                           ),
                         ],
                       ),
-                      const Gap(14),
-                      Container(
-                        height: modelHeight,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFFBF8),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: _supports3dViewer
-                              ? ModelViewer(
-                                  src: 'assets/Images/Elbess.glb',
-                                  alt: 'Elbess 3D preview',
-                                  autoRotate: false,
-                                  autoPlay: false,
-                                  cameraControls: true,
-                                  disableZoom: false,
-                                  interactionPrompt: InteractionPrompt.none,
-                                  fieldOfView: '30deg',
-                                  exposure: 1.0,
-                                  shadowIntensity: 0.6,
-                                  shadowSoftness: 0.8,
-                                  debugLogging: true,
-                                  backgroundColor: const Color(0xFFFFFBF8),
-                                )
-                              : const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(24),
-                                    child: Text(
-                                      '3D preview is available on Android, iOS, and Web.',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontFamily: 'medium',
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                        ),
-                      ),
-                      const Gap(14),
-                      Text(
-                        'Signature Collection',
-                        style: TextStyle(
-                          fontFamily: 'semi',
-                          fontSize: 17,
-                          color: const Color(0xFF2C2019),
-                        ),
-                      ),
-                      const Gap(6),
-                      Text(
-                        'A clean preview space for your hero product before customers enter the app.',
-                        style: TextStyle(
-                          fontFamily: 'regular',
-                          fontSize: 13,
-                          height: 1.45,
-                          color: const Color(0xFF786555),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
                 const Gap(26),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      minimumSize: const Size(double.infinity, 60),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SignupView(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Create Account',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontFamily: 'bold',
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
-                ),
-                const Gap(12),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      backgroundColor: Colors.white.withValues(alpha: 0.55),
-                      minimumSize: const Size(double.infinity, 58),
-                      side: BorderSide(
-                        color: AppColors.primary.withValues(alpha: 0.22),
-                        width: 1.2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginView(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'I Already Have an Account',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontFamily: 'semi',
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

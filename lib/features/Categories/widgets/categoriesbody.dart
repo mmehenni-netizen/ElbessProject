@@ -40,7 +40,7 @@ class _CategoriesbodyState extends State<Categoriesbody> {
     }
 
     if (t.contains('hood') || t.contains('hoodie') || t.contains('sweatshirt')) {
-      return 'assets/Images/categories2/093333c4bbfc6beee664aec0ec060e3c.jpg';
+      return 'assets/Images/categories2/hoddiescat.avif';
     }
 
     if (t.contains('shoe') || t.contains('bag')) {
@@ -72,21 +72,62 @@ class _CategoriesbodyState extends State<Categoriesbody> {
     return value.toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
   }
 
+  Set<String> _categoryTerms(String value) {
+    final normalized = value.toLowerCase().trim();
+
+    if (normalized.isEmpty) {
+      return <String>{};
+    }
+
+    return normalized
+        .split(RegExp(r'\||,|/|\s+'))
+        .map((part) => _normalizeCategory(part))
+        .where((part) => part.isNotEmpty)
+        .toSet();
+  }
+
   Set<String> _aliasesForCategory(String categoryKey) {
     final key = _normalizeCategory(categoryKey);
 
-    switch (key) {
-      case 'hoddies':
-      case 'hoodies':
-      case 'hoodie':
-        return <String>{'hoddies', 'hoodies', 'hoodie'};
-      case 'sweeters':
-      case 'sweaters':
-      case 'sweater':
-        return <String>{'sweeters', 'sweaters', 'sweater'};
-      default:
-        return <String>{key};
+    final aliases = <String>{key};
+
+    if (key == 'polo') {
+      aliases.addAll({'polo', 'poloshirt', 'poloshirts'});
     }
+
+    if (key == 'tshirt' || key == 'tshirts') {
+      aliases.addAll({'tshirt', 'tshirts', 't-shirt', 't-shirts'});
+    }
+
+    if (key == 'shirt' || key == 'shirts') {
+      aliases.addAll({'shirt', 'shirts'});
+    }
+
+    if (key == 'trouser' || key == 'trousers' || key == 'pants') {
+      aliases.addAll({'trouser', 'trousers', 'pants'});
+    }
+
+    if (key == 'denim' || key == 'jean' || key == 'jeans') {
+      aliases.addAll({'denim', 'jean', 'jeans'});
+    }
+
+    if (key == 'sweater' || key == 'sweaters' || key == 'cardigan' || key == 'cardigans') {
+      aliases.addAll({'sweater', 'sweaters', 'cardigan', 'cardigans'});
+    }
+
+    if (key == 'hoodie' || key == 'hoodies' || key == 'sweatshirt' || key == 'sweatshirts') {
+      aliases.addAll({'hoodie', 'hoodies', 'sweatshirt', 'sweatshirts'});
+    }
+
+    if (key == 'shoe' || key == 'shoes') {
+      aliases.addAll({'shoe', 'shoes'});
+    }
+
+    if (key == 'bag' || key == 'bags') {
+      aliases.addAll({'bag', 'bags'});
+    }
+
+    return aliases;
   }
 
   // Build aliases from a displayed category title (handles pipes and synonyms)
@@ -101,48 +142,45 @@ class _CategoriesbodyState extends State<Categoriesbody> {
     for (final part in parts) {
       final key = _normalizeCategory(part);
 
-      if (key.contains('polo')) {
-        aliases.addAll({'polo', 'poloshirts', 'poloshirt', 'polo', 'shirt'});
+      if (key.isEmpty) {
         continue;
       }
 
-      if (key.contains('tshirt') || key.contains('tshirts')) {
-        aliases.addAll({'tshirt', 'tshirts', 't-shirt', 't-shirts'});
+      aliases.addAll(_aliasesForCategory(key));
+
+      if (key == 'polo') {
         continue;
       }
 
-      if (key.contains('shirt')) {
-        aliases.addAll({'shirt', 'shirts'});
+      if (key == 'tshirt' || key == 'tshirts') {
         continue;
       }
 
-      if (key.contains('trouser') || key.contains('pants')) {
-        aliases.addAll({'trouser', 'trousers', 'pants'});
+      if (key == 'shirt' || key == 'shirts') {
         continue;
       }
 
-      if (key.contains('denim') || key.contains('jean')) {
-        aliases.addAll({'denim', 'jeans'});
+      if (key == 'trouser' || key == 'trousers' || key == 'pants') {
         continue;
       }
 
-      if (key.contains('sweater') || key.contains('cardigan')) {
-        aliases.addAll({'sweater', 'sweaters', 'cardigan', 'cardigans'});
+      if (key == 'denim' || key == 'jean' || key == 'jeans') {
         continue;
       }
 
-      if (key.contains('hood') || key.contains('hoodie') || key.contains('sweatshirt')) {
-        aliases.addAll({'hoodie', 'hoodies', 'sweatshirt', 'sweatshirts'});
+      if (key == 'sweater' || key == 'sweaters' || key == 'cardigan' || key == 'cardigans') {
         continue;
       }
 
-      if (key.contains('shoe') || key.contains('shoe')) {
-        aliases.addAll({'shoe', 'shoes'});
+      if (key == 'hoodie' || key == 'hoodies' || key == 'sweatshirt' || key == 'sweatshirts') {
         continue;
       }
 
-      if (key.contains('bag')) {
-        aliases.addAll({'bag', 'bags'});
+      if (key == 'shoe' || key == 'shoes') {
+        continue;
+      }
+
+      if (key == 'bag' || key == 'bags') {
         continue;
       }
 
@@ -154,10 +192,22 @@ class _CategoriesbodyState extends State<Categoriesbody> {
   }
 
   List<ProductModel> _productsByCategory(String categoryTitle) {
-    final aliases = _aliasesFromTitle(categoryTitle);
+    final titleTerms = _categoryTerms(categoryTitle);
     return products.where((product) {
-      final category = _normalizeCategory(product.category);
-      return aliases.contains(category);
+      final productTerms = _categoryTerms(product.category);
+
+      if (titleTerms.isEmpty || productTerms.isEmpty) {
+        return false;
+      }
+
+      if (titleTerms.contains('polo')) {
+        return productTerms.contains('polo') ||
+            _aliasesForCategory(product.category).contains('polo');
+      }
+
+      return productTerms.any(titleTerms.contains) ||
+          _aliasesForCategory(product.category).any(titleTerms.contains) ||
+          _aliasesFromTitle(categoryTitle).any(productTerms.contains);
     }).toList();
   }
 
@@ -264,7 +314,7 @@ class _CategoriesbodyState extends State<Categoriesbody> {
                 ),
                 itemBuilder: (context, index) {
                   final categoryTitle = _categories[index];
-                  final categoryProducts = _productsByCategory(_normalizeCategory(categoryTitle));
+                  final categoryProducts = _productsByCategory(categoryTitle);
 
                   return GestureDetector(
                     onTap: () {

@@ -32,6 +32,8 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
   int currentIndex = 0;
   final Map<String, int> _selectedSizeQuantities = <String, int>{};
   bool _isFavorite = false;
+  int _selectedRating = 0;
+  bool _isSubmittingRating = false;
 
   void _setDefaultStore() {
     if (!mounted) {
@@ -123,6 +125,23 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
         size: 72,
         color: Colors.grey,
       ),
+    );
+  }
+
+  Widget _buildRatingStars(int rating) {
+    final clampedRating = rating.clamp(0, 5);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        final isFilled = index < clampedRating;
+
+        return Icon(
+          isFilled ? Icons.star : Icons.star_border,
+          color: Colors.amber,
+          size: 15,
+        );
+      }),
     );
   }
 
@@ -364,10 +383,82 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
     }
   }
 
+  Widget _buildSelectableStars(int rating, {required ValueChanged<int> onTap}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        final starValue = index + 1;
+        final isFilled = starValue <= rating;
+
+        return IconButton(
+          visualDensity: VisualDensity.compact,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+          onPressed: () => onTap(starValue),
+          icon: Icon(
+            isFilled ? Icons.star_rounded : Icons.star_border_rounded,
+            color: Colors.amber,
+            size: 24,
+          ),
+        );
+      }),
+    );
+  }
+
+  Future<void> _submitProductRating() async {
+    final productId = (product?.id ?? widget.productId).trim();
+    final rating = _selectedRating;
+
+    if (productId.isEmpty || rating < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pick a rating first')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmittingRating = true;
+    });
+
+    final errorMessage = await detailsRepo.rateProduct(
+      productId: productId,
+      rating: rating,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isSubmittingRating = false;
+    });
+
+    if (errorMessage != null) {
+      final lowerMessage = errorMessage.toLowerCase();
+      final displayMessage = lowerMessage.contains('unauthorized') ||
+              lowerMessage.contains('token') ||
+              lowerMessage.contains('login')
+          ? 'Please log in to submit a rating'
+          : errorMessage;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(displayMessage)),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Rating submitted successfully')),
+    );
+
+    await getProductDetails();
+  }
+
   @override
   void initState() {
     super.initState();
     product = widget.initialProduct;
+    _selectedRating = widget.initialProduct?.rating.clamp(0, 5) ?? 0;
     _loadFavoriteState();
     getProductDetails();
   }
@@ -392,6 +483,7 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
     final storeLogo = safeStore.logo.trim();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7F7),
       body: !isLoading && product == null
           ? const Center(
               child: Text(
@@ -406,11 +498,26 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                   Stack(
                     children: [
                       Container(
-                        height: screenSize.height * 0.46,
-                        decoration: BoxDecoration(color: Color(0xffEEEEEE)),
+                        height: screenSize.height * 0.47,
+                        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFFF9F4EE), Color(0xFFEFEDE9)],
+                          ),
+                          borderRadius: BorderRadius.circular(32),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x18000000),
+                              blurRadius: 24,
+                              offset: Offset(0, 12),
+                            ),
+                          ],
+                        ),
                         child: Column(
                           children: [
-                            Gap(30),
+                            const Gap(18),
                             Expanded(
                               child: PageView.builder(
                                 controller: _pageController,
@@ -425,7 +532,14 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                 },
                                 itemBuilder: (context, index) {
                                   return Center(
-                                    child: _buildProductImage(productImage),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(18),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.7),
+                                        borderRadius: BorderRadius.circular(28),
+                                      ),
+                                      child: _buildProductImage(productImage),
+                                    ),
                                   );
                                 },
                               ),
@@ -445,9 +559,9 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                   height: currentIndex == index ? 10 : 6,
                                   decoration: BoxDecoration(
                                     color: currentIndex == index
-                                        ? Colors.black
-                                        : Colors.grey,
-                                    shape: BoxShape.circle,
+                                        ? AppColors.primary
+                                        : const Color(0xFFCFC7BF),
+                                    borderRadius: BorderRadius.circular(999),
                                   ),
                                 ),
                               ),
@@ -456,37 +570,85 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                         ),
                       ),
                       Positioned(
-                        top: 50,
-                        left: 10,
-                        right: 10,
+                        top: 34,
+                        left: 22,
+                        right: 22,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              child: Icon(
-                                Icons.arrow_back_ios,
-                                color: Colors.black,
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.92),
+                                shape: BoxShape.circle,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x12000000),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: IconButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                icon: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  color: Colors.black,
+                                  size: 18,
+                                ),
                               ),
                             ),
-                            Text(
-                              "Product Details",
-                              style: TextStyle(
-                                fontFamily: "semi",
-                                color: Colors.black,
-                                fontSize: 22,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.92),
+                                borderRadius: BorderRadius.circular(999),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x12000000),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Text(
+                                "Product Details",
+                                style: TextStyle(
+                                  fontFamily: "semi",
+                                  color: Colors.black,
+                                  fontSize: 14,
+                                  letterSpacing: 0.2,
+                                ),
                               ),
                             ),
-                            GestureDetector(
-                              onTap: isLoading ? null : _toggleFavorite,
-                              child: Icon(
-                                _isFavorite
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: _isFavorite ? Colors.red : Colors.black,
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.92),
+                                shape: BoxShape.circle,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x12000000),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: IconButton(
+                                onPressed: isLoading ? null : _toggleFavorite,
+                                icon: Icon(
+                                  _isFavorite
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
+                                  color: _isFavorite
+                                      ? Colors.red
+                                      : Colors.black,
+                                  size: 18,
+                                ),
                               ),
                             ),
                           ],
@@ -500,18 +662,25 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
+                          topLeft: Radius.circular(36),
+                          topRight: Radius.circular(36),
                         ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x12000000),
+                            blurRadius: 18,
+                            offset: Offset(0, -2),
+                          ),
+                        ],
                       ),
                       child: Column(
                         children: [
                           Expanded(
                             child: SingleChildScrollView(
                               padding: const EdgeInsets.fromLTRB(
-                                20,
-                                20,
-                                20,
+                                18,
+                                18,
+                                18,
                                 12,
                               ),
                               child: Column(
@@ -594,13 +763,9 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                       ),
                                       Row(
                                         children: [
-                                          Icon(
-                                            Icons.star,
-                                            color: Colors.amber,
-                                            size: 15,
-                                          ),
+                                          _buildRatingStars(safeProduct.rating),
                                           Text(
-                                            " 4.5",
+                                            " ${safeProduct.rating.toStringAsFixed(0)}/5",
                                             style: TextStyle(
                                               fontFamily: "bold",
                                               color: Colors.black,
@@ -640,6 +805,83 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                       fontFamily: "semi",
                                       color: Colors.grey,
                                       fontSize: 12,
+                                    ),
+                                  ),
+                                  const Gap(14),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF9F7F4),
+                                      borderRadius: BorderRadius.circular(22),
+                                      border: Border.all(
+                                        color: const Color(0xFFEDE4DA),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Rate this product',
+                                          style: TextStyle(
+                                            fontFamily: 'semi',
+                                            fontSize: 15,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        const Gap(6),
+                                        Text(
+                                          _selectedRating > 0
+                                              ? 'You selected $_selectedRating star${_selectedRating == 1 ? '' : 's'}'
+                                              : 'Tap a star to rate this item',
+                                          style: const TextStyle(
+                                            fontFamily: 'medium',
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        const Gap(8),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _buildSelectableStars(
+                                              _selectedRating,
+                                              onTap: (value) {
+                                                if (!mounted) {
+                                                  return;
+                                                }
+                                                setState(() {
+                                                  _selectedRating = value;
+                                                });
+                                              },
+                                            ),
+                                            TextButton(
+                                              onPressed: _isSubmittingRating
+                                                  ? null
+                                                  : _submitProductRating,
+                                              child: _isSubmittingRating
+                                                  ? const SizedBox(
+                                                      height: 18,
+                                                      width: 18,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                    )
+                                                  : Text(
+                                                      'Submit',
+                                                      style: TextStyle(
+                                                        fontFamily: 'semi',
+                                                        color:
+                                                            AppColors.primary,
+                                                      ),
+                                                    ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   const Gap(16),
@@ -806,14 +1048,21 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                       );
                                     },
                                     child: Container(
-                                      height: screenSize.height * 0.05,
+                                      height: screenSize.height * 0.055,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(30),
+                                        borderRadius: BorderRadius.circular(18),
                                         border: Border.all(
                                           color: AppColors.primary,
-                                          width: 1.5,
+                                          width: 1.2,
                                         ),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Color(0x0F000000),
+                                            blurRadius: 14,
+                                            offset: Offset(0, 8),
+                                          ),
+                                        ],
                                       ),
                                       child: Center(
                                         child: Text(
@@ -862,10 +1111,24 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                       );
                                     },
                                     child: Container(
-                                      height: screenSize.height * 0.05,
+                                      height: screenSize.height * 0.055,
                                       decoration: BoxDecoration(
-                                        color: AppColors.primary,
-                                        borderRadius: BorderRadius.circular(30),
+                                        gradient: const LinearGradient(
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                          colors: [
+                                            Color(0xFFB56E3D),
+                                            Color(0xFFD39A6B),
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(18),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Color(0x28000000),
+                                            blurRadius: 18,
+                                            offset: Offset(0, 10),
+                                          ),
+                                        ],
                                       ),
                                       child: Center(
                                         child: Text(

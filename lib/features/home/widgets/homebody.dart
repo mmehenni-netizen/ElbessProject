@@ -63,17 +63,30 @@ class _HomebodyState extends State<Homebody> {
   }
 
   Future<void> _openProduct(ProductModel product) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailView(
-          productId: product.id,
-          initialProduct: product,
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProductDetailView(
+            productId: product.id,
+            initialProduct: product,
+          ),
         ),
-      ),
-    );
+      );
 
-    await _loadFavorites();
+      await _loadFavorites();
+    } catch (e, st) {
+      // Log and show a non-fatal error instead of allowing a potential crash
+      // to take down the emulator.
+      // ignore: avoid_print
+      print('Error opening product detail: $e');
+      // ignore: avoid_print
+      print(st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open product details')),
+      );
+    }
   }
 
   Future<void> getProducts() async {

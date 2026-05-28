@@ -14,9 +14,21 @@ class ProductDetailView extends StatefulWidget {
 class _ProductDetailViewState extends State<ProductDetailView> {
   @override
   Widget build(BuildContext context) {
-    return ProductDetailBody(
-      productId: widget.productId,
-      initialProduct: widget.initialProduct,
-    );
+    try {
+      return ProductDetailBody(
+        productId: widget.productId,
+        initialProduct: widget.initialProduct,
+      );
+    } catch (e, st) {
+      // Log build errors and show a safe error UI instead of crashing.
+      // ignore: avoid_print
+      print('ProductDetailView build error: $e');
+      // ignore: avoid_print
+      print(st);
+      return Scaffold(
+        appBar: AppBar(title: const Text('Product')), 
+        body: const Center(child: Text('Could not load product details')),
+      );
+    }
   }
 }

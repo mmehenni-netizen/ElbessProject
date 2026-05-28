@@ -125,11 +125,13 @@ export const rate = async (req, res) => {
   let type = "";
 
   try {
+    const parsedRating = Number(rating);
+
     if (!storeId && !productId) {
       throw new Error("Store ID or Product ID is required !");
     }
 
-    if (!rating || rating < 1 || rating > 5) {
+    if (!Number.isFinite(parsedRating) || parsedRating < 1 || parsedRating > 5) {
       throw new Error("Rating must be between 1 and 5 !");
     }
 
@@ -164,14 +166,14 @@ export const rate = async (req, res) => {
     if (hasRated) {
       entry.rates = entry.rates.map((r) => {
         if (r.user.toString() === user._id.toString()) {
-          r.rate = rating;
+          r.rate = parsedRating;
         }
         return r;
       });
     } else {
       entry.rates.push({
         user: user._id,
-        rate: rating,
+        rate: parsedRating,
       });
     }
 

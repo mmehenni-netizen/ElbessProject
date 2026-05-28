@@ -1,4 +1,5 @@
 import 'package:elbess/core/network/api_service.dart';
+import 'package:elbess/core/network/api_error.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/features/home/data/store_model.dart';
 import 'package:elbess/features/store_page/data/store_repo.dart';
@@ -115,5 +116,47 @@ Future<ProductModel?> getProductDetails(String productId) async {
 
   Future<StoreModel> getStoreDetails(String storeId) async {
     return _storeRepo.getStoreById(storeId);
+  }
+
+  Future<String?> rateProduct({
+    required String productId,
+    required int rating,
+  }) async {
+    try {
+      final response = await _apiService.post('/actions/rate', <String, dynamic>{
+        'productId': productId.trim(),
+        'rating': rating,
+      });
+
+      // Debugging: log raw response and its type to help trace backend errors
+      try {
+        debugPrint('rateProduct -> raw response: $response');
+        debugPrint('rateProduct -> response runtimeType: ${response.runtimeType}');
+        if (response is Map) {
+          debugPrint('rateProduct -> response keys: ${response.keys.toList()}');
+        }
+      } catch (e) {
+        debugPrint('rateProduct -> failed to print response debug info: $e');
+      }
+
+      if (response is ApiError) {
+        return response.message;
+      }
+
+      if (response is! Map<String, dynamic>) {
+        return 'Unexpected response from server: ${response?.toString() ?? 'null'}';
+      }
+
+      if (response['success'] == true) {
+        return null;
+      }
+
+      return (response['message'] as String?)?.trim().isNotEmpty == true
+          ? response['message'] as String
+          : 'Could not submit rating right now';
+    } catch (e) {
+      debugPrint('Error rating product: $e');
+      return 'Could not submit rating right now';
+    }
   }
 }
