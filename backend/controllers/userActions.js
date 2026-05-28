@@ -55,9 +55,11 @@ export const setProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Rate handler error:", error);
+    // Include stack trace in response for debugging (redeploy to remove in prod)
+    const stack = error && error.stack ? error.stack : '';
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: `${error.message}${stack ? '\n' + stack : ''}`,
     });
   }
 };
