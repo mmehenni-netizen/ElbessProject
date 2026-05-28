@@ -129,7 +129,17 @@ export const rate = async (req, res) => {
     console.log('Rate handler body JSON:', JSON.stringify(req.body));
   } catch (_) {}
   console.log('Has productId property:', Object.prototype.hasOwnProperty.call(req.body || {}, 'productId'));
-  const rawBody = req.body || {};
+  // If the body was parsed as plain text, try to parse it as JSON
+  let rawBody = req.body || {};
+  if (typeof rawBody === 'string' && rawBody.trim().length > 0) {
+    try {
+      rawBody = JSON.parse(rawBody);
+      console.log('Rate handler: parsed string body to JSON');
+    } catch (e) {
+      console.log('Rate handler: failed to parse string body as JSON');
+      rawBody = {};
+    }
+  }
   const rawProductId = rawBody.productId ?? rawBody.productID ?? rawBody.product_id ?? '';
   const rawStoreId = rawBody.storeId ?? rawBody.storeID ?? rawBody.store_id ?? '';
   const rawRating = rawBody.rating ?? rawBody.Rating ?? rawBody.rate ?? '';
