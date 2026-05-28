@@ -25,15 +25,14 @@ app.use("/api/fetch", fetchRoute);
 app.use("/api/debug", debugRoute);
 
 const startServer = async () => {
+  app.listen(PORT, HOST, () => {
+    console.log(`server is running on http://${HOST}:${PORT}`);
+  });
+
   try {
     await connectDB();
-
-    app.listen(PORT, HOST, () => {
-      console.log(`server is running on http://${HOST}:${PORT}`);
-    });
   } catch (error) {
-    console.log(`Failed to start backend: ${error.message}`);
-    process.exit(1);
+    console.log(`Database connection failed during startup: ${error.message}`);
   }
 };
 

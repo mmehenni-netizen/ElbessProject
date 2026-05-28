@@ -74,8 +74,7 @@ export const connectDB = async () => {
             }
 
             if (attempt === maxRetries) {
-                console.log("Database connection failed after maximum retries. Check internet, DNS, and Atlas IP Access List.")
-                process.exit(1)
+                throw new Error("Database connection failed after maximum retries. Check internet, DNS, and Atlas IP Access List.")
             }
 
             await new Promise((resolve) => setTimeout(resolve, retryDelayMs))
