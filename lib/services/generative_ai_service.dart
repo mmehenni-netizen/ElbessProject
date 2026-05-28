@@ -1,46 +1,35 @@
-import 'dart:convert';
-
-import 'package:dio/dio.dart';
-
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 class GenerativeAIService {
   final String apiKey;
-  final Dio _dio;
   final String model;
+  late final GenerativeModel _model;
 
-  GenerativeAIService(this.apiKey, {Dio? dio, this.model = 'models/text-bison-001'}) : _dio = dio ?? Dio() {
-    _dio.options.headers['Content-Type'] = 'application/json';
+  GenerativeAIService(this.apiKey, {this.model = 'gemini-1.5-flash'}) {
+    _model = GenerativeModel(model: model, apiKey: apiKey);
   }
 
   /// Generates text for [prompt].
   ///
   /// Returns the generated string on success or throws on failure.
-  Future<String> generateText(String prompt, {double temperature = 0.2, int maxOutputTokens = 512}) async {
-    final url = 'https://generativelanguage.googleapis.com/v1beta2/$model:generateText?key=$apiKey';
+  Future<String> generateText(
+    String prompt, {
+    double temperature = 0.2,
+    int maxOutputTokens = 512,
+  }) async {
+    final response = await _model.generateContent(
+      <Content>[Content.text(prompt)],
+      generationConfig: GenerationConfig(
+        temperature: temperature,
+        maxOutputTokens: maxOutputTokens,
+      ),
+    );
 
-    final body = {
-      'prompt': {'text': prompt},
-      'temperature': temperature,
-      'maxOutputTokens': maxOutputTokens,
-    };
-
-    final resp = await _dio.post(url, data: jsonEncode(body));
-
-    if (resp.statusCode == 200) {
-      final data = resp.data;
-      if (data is Map) {
-        // Try common response shapes from Generative Language API
-        if (data['candidates'] != null && data['candidates'] is List && data['candidates'].isNotEmpty) {
-          return data['candidates'][0]['content'] ?? data['candidates'][0].toString();
-        }
-        if (data['output'] != null) return data['output'].toString();
-        if (data['text'] != null) return data['text'].toString();
-      }
-      return resp.data.toString();
+    final text = response.text?.trim();
+    if (text != null && text.isNotEmpty) {
+      return text;
     }
 
-    throw Exception('Failed to generate text: ${resp.statusCode} ${resp.statusMessage} ${resp.data}');
+    throw Exception('Empty response from Gemini API');
   }
 }
-
-

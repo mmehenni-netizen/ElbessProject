@@ -1,8 +1,4 @@
-import 'dart:math';
-import 'dart:ui';
-
 import 'package:elbess/features/chat/widgets/chat_models.dart';
-import 'package:elbess/features/chat/widgets/mock_ai.dart';
 import 'package:elbess/features/home/data/home_repo.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/services/api_key_provider.dart';
@@ -38,7 +34,9 @@ class ChatRepo {
 
     final service = _resolveService();
     if (service == null) {
-      return MockAI.respond(trimmedUserMessage, trimmedProductName);
+      return _aiUnavailableResponse(
+        'AI key is missing. Run the app with --dart-define=GENAI_API_KEY=... to get real responses.',
+      );
     }
 
     final prompt = _buildPrompt(
@@ -68,15 +66,19 @@ class ChatRepo {
             : text.trim(),
         products: matches.isNotEmpty ? matches : null,
       );
-    } catch (_) {
-      return _fallbackResponse(trimmedUserMessage, trimmedProductName);
+    } catch (e) {
+      return _aiUnavailableResponse(
+        'AI service is unavailable right now. Please try again. (${e.runtimeType})',
+      );
     }
   }
 
-  ChatMessage _fallbackResponse(String userMessage, String productName) {
-    final response = MockAI.respond(userMessage, productName);
-
-    return response;
+  ChatMessage _aiUnavailableResponse(String message) {
+    return ChatMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      role: MessageRole.assistant,
+      text: message,
+    );
   }
 
   String _buildPrompt({
