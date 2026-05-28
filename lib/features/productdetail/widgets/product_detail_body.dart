@@ -5,9 +5,16 @@ import 'package:elbess/features/checkout/presentation/checkout_view.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/features/home/data/store_model.dart';
 import 'package:elbess/features/productdetail/data/details_repo.dart';
+import 'package:elbess/features/productdetail/widgets/product_header.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'product_image.dart';
+import 'rating_stars.dart';
+import 'selectable_stars.dart';
+import 'quantity_button.dart';
+import 'image_utils.dart';
+import 'product_placeholders.dart';
 
 class ProductDetailBody extends StatefulWidget {
   const ProductDetailBody({
@@ -62,87 +69,10 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
     });
   }
 
-  String _resolveImageUrl(String rawPath) {
-    final trimmed = rawPath.trim();
-
-    if (trimmed.isEmpty) {
-      return '';
-    }
-
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-      return '';
-    }
-
-    if (trimmed.startsWith('assets/')) {
-      return trimmed;
-    }
-
-    final resolvedNetworkPath = resolveNetworkUrl(trimmed);
-    if (resolvedNetworkPath.startsWith('http://') ||
-        resolvedNetworkPath.startsWith('https://')) {
-      return resolvedNetworkPath;
-    }
-
-    if (!trimmed.contains('/') && !trimmed.contains('\\')) {
-      return 'assets/Images/clothes/$trimmed';
-    }
-
-    return trimmed;
-  }
-
-  Widget _buildProductImage(String rawPath) {
-    final resolvedPath = _resolveImageUrl(rawPath);
-
-    if (resolvedPath.isEmpty) {
-      return const Icon(
-        Icons.image_not_supported_outlined,
-        size: 72,
-        color: Colors.grey,
-      );
-    }
-
-    if (resolvedPath.startsWith('assets/')) {
-      return Image.asset(
-        resolvedPath,
-        height: MediaQuery.sizeOf(context).height * 0.6,
-        width: MediaQuery.sizeOf(context).width * 0.6,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => const Icon(
-          Icons.image_not_supported_outlined,
-          size: 72,
-          color: Colors.grey,
-        ),
-      );
-    }
-
-    return Image.network(
-      resolvedPath,
-      height: MediaQuery.sizeOf(context).height * 0.6,
-      width: MediaQuery.sizeOf(context).width * 0.6,
-      fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => const Icon(
-        Icons.image_not_supported_outlined,
-        size: 72,
-        color: Colors.grey,
-      ),
-    );
-  }
+  
 
   Widget _buildRatingStars(int rating) {
-    final clampedRating = rating.clamp(0, 5);
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (index) {
-        final isFilled = index < clampedRating;
-
-        return Icon(
-          isFilled ? Icons.star : Icons.star_border,
-          color: Colors.amber,
-          size: 15,
-        );
-      }),
-    );
+    return RatingStars(rating: rating);
   }
 
   List<SizeQuantityModel> get _availableSizeQuantities {
@@ -384,25 +314,7 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
   }
 
   Widget _buildSelectableStars(int rating, {required ValueChanged<int> onTap}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (index) {
-        final starValue = index + 1;
-        final isFilled = starValue <= rating;
-
-        return IconButton(
-          visualDensity: VisualDensity.compact,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
-          onPressed: () => onTap(starValue),
-          icon: Icon(
-            isFilled ? Icons.star_rounded : Icons.star_border_rounded,
-            color: Colors.amber,
-            size: 24,
-          ),
-        );
-      }),
-    );
+    return SelectableStars(rating: rating, onTap: onTap);
   }
 
   Future<void> _submitProductRating() async {
@@ -495,166 +407,18 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
               enabled: isLoading,
               child: Column(
                 children: [
-                  Stack(
-                    children: [
-                      Container(
-                        height: screenSize.height * 0.47,
-                        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Color(0xFFF9F4EE), Color(0xFFEFEDE9)],
-                          ),
-                          borderRadius: BorderRadius.circular(32),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x18000000),
-                              blurRadius: 24,
-                              offset: Offset(0, 12),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            const Gap(18),
-                            Expanded(
-                              child: PageView.builder(
-                                controller: _pageController,
-                                itemCount: 1,
-                                onPageChanged: (index) {
-                                  if (!mounted) {
-                                    return;
-                                  }
-                                  setState(() {
-                                    currentIndex = index;
-                                  });
-                                },
-                                itemBuilder: (context, index) {
-                                  return Center(
-                                    child: Container(
-                                      padding: const EdgeInsets.all(18),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.7),
-                                        borderRadius: BorderRadius.circular(28),
-                                      ),
-                                      child: _buildProductImage(productImage),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(
-                                1,
-                                (index) => AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: 10,
-                                  ),
-                                  width: currentIndex == index ? 10 : 6,
-                                  height: currentIndex == index ? 10 : 6,
-                                  decoration: BoxDecoration(
-                                    color: currentIndex == index
-                                        ? AppColors.primary
-                                        : const Color(0xFFCFC7BF),
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        top: 34,
-                        left: 22,
-                        right: 22,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.92),
-                                shape: BoxShape.circle,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x12000000),
-                                    blurRadius: 10,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: IconButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                icon: const Icon(
-                                  Icons.arrow_back_ios_new_rounded,
-                                  color: Colors.black,
-                                  size: 18,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.92),
-                                borderRadius: BorderRadius.circular(999),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x12000000),
-                                    blurRadius: 10,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: const Text(
-                                "Product Details",
-                                style: TextStyle(
-                                  fontFamily: "semi",
-                                  color: Colors.black,
-                                  fontSize: 14,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.92),
-                                shape: BoxShape.circle,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x12000000),
-                                    blurRadius: 10,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: IconButton(
-                                onPressed: isLoading ? null : _toggleFavorite,
-                                icon: Icon(
-                                  _isFavorite
-                                      ? Icons.favorite_rounded
-                                      : Icons.favorite_border_rounded,
-                                  color: _isFavorite
-                                      ? Colors.red
-                                      : Colors.black,
-                                  size: 18,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  ProductHeader(
+                    rawImage: productImage,
+                    currentIndex: currentIndex,
+                    pageController: _pageController,
+                    onPageChanged: (index) {
+                      if (!mounted) return;
+                      setState(() => currentIndex = index);
+                    },
+                    isLoading: isLoading,
+                    isFavorite: _isFavorite,
+                    onBack: () => Navigator.pop(context),
+                    onToggleFavorite: _toggleFavorite,
                   ),
                   Expanded(
                     child: Container(
@@ -705,7 +469,7 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                               ? Builder(
                                                   builder: (context) {
                                                     final resolvedLogo =
-                                                        _resolveImageUrl(
+                                                        resolveImageUrlNormalized(
                                                           storeLogo,
                                                         );
                                                     if (resolvedLogo.startsWith(
@@ -1156,63 +920,8 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
     );
   }
 
-  StoreModel get _placeholderStore => StoreModel(
-    id: 'store-placeholder',
-    name: 'Elbess Studio',
-    location: '',
-    description: '',
-    activeProducts: 0,
-    rating: 0,
-    revenus: 0,
-    shippingTime: 0,
-    products: <ProductModel>[],
-    totalOrders: 0,
-    address: '',
-    password: '',
-    isEmailVerified: false,
-    logo: '',
-    rates: <StoreRateModel>[],
-    version: 0,
-  );
+  StoreModel get _placeholderStore => placeholderStore();
 
-  ProductModel get _placeholderProduct => ProductModel(
-    id: 'product-placeholder',
-    name: 'Relaxed Cotton Hoodie',
-    description: 'A clean, easy layer with a soft brushed finish.',
-    price: 420,
-    rating: 4,
-    totalQuantity: 12,
-    sizeQuantities: <SizeQuantityModel>[
-      SizeQuantityModel(id: 'size-s', size: 'S', quantity: 4),
-      SizeQuantityModel(id: 'size-m', size: 'M', quantity: 4),
-      SizeQuantityModel(id: 'size-l', size: 'L', quantity: 4),
-    ],
-    store: _placeholderStore,
-    imageUrls: const <String>[],
-    imageUrl: '',
-    category: 'Hoodies',
-    gender: 'unisex',
-    rates: const <ProductRateModel>[],
-    version: 0,
-  );
+  ProductModel get _placeholderProduct => placeholderProduct();
 }
 
-class QuantityButton extends StatelessWidget {
-  const QuantityButton({super.key, required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
-      child: SizedBox(
-        width: 36,
-        height: 32,
-        child: Icon(icon, size: 18, color: Colors.black87),
-      ),
-    );
-  }
-}

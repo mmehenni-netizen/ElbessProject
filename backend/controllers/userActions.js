@@ -54,6 +54,7 @@ export const setProfile = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Rate handler error:", error);
     return res.status(500).json({
       success: false,
       message: error.message,
