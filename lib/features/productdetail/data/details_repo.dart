@@ -123,14 +123,32 @@ Future<ProductModel?> getProductDetails(String productId) async {
     required int rating,
   }) async {
     try {
+      // Prepare robust payload with multiple accepted keys
+      final trimmedProductId = productId.trim();
+      final payload = <String, dynamic>{
+        'productId': trimmedProductId,
+        'product_id': trimmedProductId,
+        'productID': trimmedProductId,
+        'rating': rating,
+        'rate': rating,
+      };
+
+      // If available, include storeId as well (backend accepts either)
+      try {
+        final possibleStoreId = (await getProductDetails(trimmedProductId))?.store?.id ?? '';
+        if (possibleStoreId.isNotEmpty) {
+          payload['storeId'] = possibleStoreId;
+          payload['store_id'] = possibleStoreId;
+          payload['storeID'] = possibleStoreId;
+        }
+      } catch (_) {}
+
       // Log request body for debugging
       try {
-        debugPrint('rateProduct -> request body: ${<String, dynamic>{'productId': productId.trim(), 'rating': rating}}');
+        debugPrint('rateProduct -> request payload: $payload');
       } catch (_) {}
-      final response = await _apiService.post('/actions/rate', <String, dynamic>{
-        'productId': productId.trim(),
-        'rating': rating,
-      });
+
+      final response = await _apiService.post('/actions/rate', payload);
 
       // Debugging: log raw response and its type to help trace backend errors
       try {
