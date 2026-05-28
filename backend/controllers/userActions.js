@@ -126,6 +126,8 @@ export const rate = async (req, res) => {
   console.log('Rate handler request body:', req.body);
   console.log('Rate handler content-type:', req.headers['content-type']);
   const { storeId, productId, rating } = req.body || {};
+  console.log('Rate handler parsed values:', { storeId, productId, rating });
+  console.log('Rate handler parsed types:', typeof storeId, typeof productId, typeof rating);
 
   let type = "";
 
