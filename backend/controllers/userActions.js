@@ -129,23 +129,37 @@ export const rate = async (req, res) => {
     console.log('Rate handler body JSON:', JSON.stringify(req.body));
   } catch (_) {}
   console.log('Has productId property:', Object.prototype.hasOwnProperty.call(req.body || {}, 'productId'));
-  const { storeId, productId, rating } = req.body || {};
-  console.log('Rate handler parsed values:', { storeId, productId, rating });
-  console.log('Rate handler parsed types:', typeof storeId, typeof productId, typeof rating);
+  const rawBody = req.body || {};
+  const rawProductId = rawBody.productId ?? rawBody.productID ?? rawBody.product_id ?? '';
+  const rawStoreId = rawBody.storeId ?? rawBody.storeID ?? rawBody.store_id ?? '';
+  const rawRating = rawBody.rating ?? rawBody.Rating ?? rawBody.rate ?? '';
+
+  console.log('Rate handler parsed values (raw):', { rawProductId, rawStoreId, rawRating });
+
+  const productId = typeof rawProductId === 'string'
+    ? rawProductId.trim()
+    : (rawProductId != null ? String(rawProductId) : '');
+
+  const storeId = typeof rawStoreId === 'string'
+    ? rawStoreId.trim()
+    : (rawStoreId != null ? String(rawStoreId) : '');
+
+  const parsedRating = Number(rawRating);
+
+  console.log('Rate handler normalized values:', { productId, storeId, parsedRating });
+
+  // Validate input early and return 400 for client errors
+  if (!productId && !storeId) {
+    return res.status(400).json({ success: false, message: 'Store ID or Product ID is required !' });
+  }
+
+  if (!Number.isFinite(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+    return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5 !' });
+  }
 
   let type = "";
 
   try {
-    const parsedRating = Number(rating);
-
-    if (!storeId && !productId) {
-      throw new Error("Store ID or Product ID is required !");
-    }
-
-    if (!Number.isFinite(parsedRating) || parsedRating < 1 || parsedRating > 5) {
-      throw new Error("Rating must be between 1 and 5 !");
-    }
-
     const user = await userModel.findById(req.user._id);
 
     if (!user) {
