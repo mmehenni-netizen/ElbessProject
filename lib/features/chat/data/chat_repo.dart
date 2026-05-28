@@ -12,6 +12,9 @@ class ChatRepo {
 
   final GenerativeAIService? _service;
   final HomeRepo _homeRepo;
+  List<ProductModel>? _cachedProducts;
+  DateTime? _productsCachedAt;
+  static const Duration _cacheTtl = Duration(minutes: 5);
 
   GenerativeAIService? _resolveService() {
     if (_service != null) {
@@ -67,8 +70,9 @@ class ChatRepo {
         products: matches.isNotEmpty ? matches : null,
       );
     } catch (e) {
+      final errorText = e.toString();
       return _aiUnavailableResponse(
-        'AI service is unavailable right now. Please try again. (${e.runtimeType})',
+        'AI service is unavailable right now. Please try again. $errorText',
       );
     }
   }
@@ -107,7 +111,7 @@ Rules:
     required String userMessage,
     required String aiText,
   }) async {
-    final products = await _homeRepo.getProducts();
+    final products = await _loadProductsCached();
     if (products.isEmpty) {
       return <ProductCard>[];
     }
@@ -152,6 +156,22 @@ Rules:
               aiText: aiText,
             ))
         .toList();
+  }
+
+  Future<List<ProductModel>> _loadProductsCached() async {
+    final now = DateTime.now();
+    final hasValidCache = _cachedProducts != null &&
+        _productsCachedAt != null &&
+        now.difference(_productsCachedAt!) <= _cacheTtl;
+
+    if (hasValidCache) {
+      return _cachedProducts!;
+    }
+
+    final products = await _homeRepo.getProducts();
+    _cachedProducts = products;
+    _productsCachedAt = now;
+    return products;
   }
 
   int _scoreProduct(
