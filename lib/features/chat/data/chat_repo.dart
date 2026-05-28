@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:elbess/features/chat/widgets/chat_models.dart';
 import 'package:elbess/features/chat/widgets/mock_ai.dart';
@@ -6,6 +7,7 @@ import 'package:elbess/features/home/data/home_repo.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/services/api_key_provider.dart';
 import 'package:elbess/services/generative_ai_service.dart';
+import 'package:flutter/material.dart';
 
 class ChatRepo {
   ChatRepo({GenerativeAIService? service, HomeRepo? homeRepo})
@@ -231,7 +233,7 @@ Rules:
       return Icons.directions_walk_rounded;
     }
     if (text.contains('dress') || text.contains('skirt')) {
-      return Icons.ward_rounded;
+      return Icons.yard_rounded;
     }
     if (text.contains('jacket') || text.contains('coat') || text.contains('hoodie')) {
       return Icons.checkroom_rounded;

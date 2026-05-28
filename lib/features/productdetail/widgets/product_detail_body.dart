@@ -2,6 +2,7 @@ import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/network/network_config.dart';
 import 'package:elbess/core/utils/pref_helpers.dart';
 import 'package:elbess/features/checkout/presentation/checkout_view.dart';
+import 'package:elbess/features/chat/views/chat_veiw.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/features/home/data/store_model.dart';
 import 'package:elbess/features/productdetail/data/details_repo.dart';
@@ -836,6 +837,71 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                             color: AppColors.primary,
                                             fontSize: 16,
                                           ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const Gap(5),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      if (isLoading) {
+                                        return;
+                                      }
+
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ChatView(
+                                            productName: safeProduct.name.isNotEmpty
+                                                ? safeProduct.name
+                                                : 'Product',
+                                            productImage: productImage,
+                                            productPrice: safeProduct.price > 0
+                                                ? '\$${safeProduct.price.toStringAsFixed(2)}'
+                                                : null,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      height: screenSize.height * 0.055,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF4ECFE),
+                                        borderRadius: BorderRadius.circular(18),
+                                        border: Border.all(
+                                          color: AppColors.primary,
+                                          width: 1.2,
+                                        ),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Color(0x0F7C3AED),
+                                            blurRadius: 14,
+                                            offset: Offset(0, 8),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.smart_toy_outlined,
+                                              color: AppColors.primary,
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Ask AI',
+                                              style: TextStyle(
+                                                fontFamily: 'semi',
+                                                color: AppColors.primary,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),

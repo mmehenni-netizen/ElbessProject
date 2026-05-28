@@ -1,9 +1,9 @@
 import 'dart:async';
+import 'package:elbess/features/chat/data/chat_repo.dart';
 import 'package:elbess/features/chat/widgets/product_suggestions.dart';
 import 'package:flutter/material.dart';
 
 import 'chat_models.dart';
-import 'mock_ai.dart';
 import 'product_context_card.dart';
 import 'message_bubble.dart';
 import 'typing_indicator.dart';
@@ -34,6 +34,7 @@ class _ChatBodyState extends State<ChatBody> with TickerProviderStateMixin {
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
   late AnimationController _pulseController;
+  final ChatRepo _chatRepo = ChatRepo();
 
   // Quick-action chips
   final List<String> _quickActions = [
@@ -116,11 +117,14 @@ class _ChatBodyState extends State<ChatBody> with TickerProviderStateMixin {
     });
     _scrollToBottom();
 
-    // Simulate AI typing delay
-    await Future.delayed(const Duration(milliseconds: 1200));
+    // Simulate short typing delay so the UI feels responsive.
+    await Future.delayed(const Duration(milliseconds: 650));
 
     if (!mounted) return;
-    final response = MockAI.respond(text, widget.productName);
+    final response = await _chatRepo.replyForProduct(
+      productName: widget.productName,
+      userMessage: text,
+    );
     setState(() {
       _messages.add(response);
       _isLoading = false;
@@ -160,50 +164,6 @@ class _ChatBodyState extends State<ChatBody> with TickerProviderStateMixin {
         InputBar(controller: _controller, onSend: _sendMessage),
       ],
     );
-  }
-
-  // ── Product Context Card (top of chat) ──────────────────────────────────────
-
-  Widget _buildProductContextCard() {
-    return ProductContextCard(productName: widget.productName, productPrice: widget.productPrice);
-  }
-
-  // ── Message Bubble ──────────────────────────────────────────────────────────
-
-  Widget _buildMessageBubble(ChatMessage msg) {
-    return MessageBubble(msg: msg);
-  }
-
-  Widget _buildMessageText(String text, bool isUser) {
-    return MessageText(text: text, isUser: isUser);
-  }
-
-  // ── Product Suggestion Cards ─────────────────────────────────────────────────
-
-  Widget _buildProductSuggestions(List<ProductCard> products) {
-    return ProductSuggestions(products: products);
-  }
-
-  Widget _buildProductChip(ProductCard product) {
-    return const SizedBox.shrink();
-  }
-
-  // ── Typing Indicator ─────────────────────────────────────────────────────────
-
-  Widget _buildTypingIndicator() {
-    return TypingIndicator(animation: _pulseController);
-  }
-
-  // ── Quick Action Chips ───────────────────────────────────────────────────────
-
-  Widget _buildQuickActions() {
-    return QuickActions(actions: _quickActions, onTap: _sendMessage);
-  }
-
-  // ── Input Bar ────────────────────────────────────────────────────────────────
-
-  Widget _buildInputBar() {
-    return InputBar(controller: _controller, onSend: _sendMessage);
   }
 
   String _formatTime(DateTime time) {
