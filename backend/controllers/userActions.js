@@ -124,6 +124,7 @@ export const setFavorite = async (req, res) => {
 
 export const rate = async (req, res) => {
   console.log('Rate handler request body:', req.body);
+  console.log('Rate handler content-type:', req.headers['content-type']);
   const { storeId, productId, rating } = req.body || {};
 
   let type = "";
