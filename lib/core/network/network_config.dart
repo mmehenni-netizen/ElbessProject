@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
-const String _defaultHost = 'https://elbessproject.onrender.com';
+const String _defaultHost = 'https://elbessproject-production.up.railway.app';
 const String _envApiHost = String.fromEnvironment(
   'API_HOST',
   defaultValue: '',
