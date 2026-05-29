@@ -184,16 +184,8 @@ export const rate = async (req, res) => {
       }
     }
 
-    const userId = user._id.toString();
-    const existingRateIndex = entry.rates.findIndex(
-      (r) => r.user.toString() === userId,
-    );
-
-    if (existingRateIndex >= 0) {
-      entry.rates[existingRateIndex].rate = parsedRating;
-    } else {
-      entry.rates.push({ user: user._id, rate: parsedRating });
-    }
+    // Keep a submission history: each submit is a new row in rates.
+    entry.rates.push({ user: user._id, rate: parsedRating });
     entry.markModified('rates');
 
     const newRating = computeAverageRating(entry.rates);
@@ -374,9 +366,12 @@ export const getRate = async (req, res) => {
     }
 
     const totalRates = entry.rates.length;
-    const userRate = entry.rates.find(
+    const sameUserRates = entry.rates.filter(
       (r) => r.user.toString() === user._id.toString()
     );
+    const userRate = sameUserRates.isEmpty
+      ? null
+      : sameUserRates[sameUserRates.length - 1];
 
     return res.status(200).json({
       success: true,
