@@ -418,6 +418,7 @@ class _StoreBodyState extends State<StoreBody> {
 
                               return ItemCard(
                                 imagePath: productImage,
+                                productId: product.id,
                                 storeName: store?.name ?? '',
                                 itemName: product.name,
                                 price: product.price.toStringAsFixed(2),

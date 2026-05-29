@@ -2,6 +2,7 @@ import 'package:elbess/core/network/api_service.dart';
 import 'package:elbess/core/network/api_error.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/features/home/data/store_model.dart';
+import 'package:elbess/features/productdetail/data/result.dart';
 import 'package:elbess/features/store_page/data/store_repo.dart';
 import 'package:flutter/foundation.dart';
 
@@ -145,4 +146,44 @@ Future<String?> rateProduct({
     debugPrint('Error rating product: $e');
     return 'Could not submit rating right now';
   }
+}
+Future<RateResult?> getRate({
+  String? productId,
+  String? storeId,
+}) async {
+  try {
+    if ((productId == null || productId.trim().isEmpty) &&
+        (storeId == null || storeId.trim().isEmpty)) {
+      debugPrint('getRate: productId or storeId is required');
+      return null;
+    }
+
+    final queryParams = productId != null && productId.trim().isNotEmpty
+        ? 'productId=${productId.trim()}'
+        : 'storeId=${storeId!.trim()}';
+
+    final response = await _apiService.get('/actions/rate?$queryParams');
+
+    if (response is ApiError) {
+      debugPrint('getRate error: ${response.message}');
+      return null;
+    }
+
+    if (response is! Map<String, dynamic>) {
+      debugPrint('getRate: unexpected response type');
+      return null;
+    }
+
+    if (response['success'] != true) {
+      debugPrint('getRate failed: ${response['message']}');
+      return null;
+    }
+
+    return RateResult.fromJson(response); // ✅ cleaner
+  } catch (e) {
+    debugPrint('Error fetching rate: $e');
+    return null;
+  }
 }}
+
+ 

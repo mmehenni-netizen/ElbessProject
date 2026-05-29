@@ -397,6 +397,7 @@ class _HomebodyState extends State<Homebody> {
                       ),
                       child: ItemCard(
                         imagePath: products![index].imageUrl,
+                        productId: products![index].id,
                         storeName: products![index].store?.name ?? '',
                         itemName: products![index].name,
                         price: products![index].price.toStringAsFixed(2),

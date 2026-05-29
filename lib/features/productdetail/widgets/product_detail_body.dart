@@ -42,6 +42,7 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
   bool _isFavorite = false;
   int _selectedRating = 0;
   bool _isSubmittingRating = false;
+  double? _resolvedProductRating;
 
   void _setDefaultStore() {
     if (!mounted) {
@@ -72,8 +73,31 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
 
   
 
-  Widget _buildRatingStars(int rating) {
-    return RatingStars(rating: rating);
+  Widget _buildRatingStars(double rating) {
+    return RatingStars(rating: rating.round().clamp(0, 5));
+  }
+
+  Future<void> _loadProductRate({String? productIdOverride}) async {
+    final productId = (productIdOverride ?? product?.id ?? widget.productId).trim();
+    if (productId.isEmpty) {
+      return;
+    }
+
+    try {
+      final rate = await detailsRepo.getRate(productId: productId);
+      if (!mounted || rate == null) {
+        return;
+      }
+
+      setState(() {
+        _resolvedProductRating = rate.rating;
+        if (rate.userRate != null && rate.userRate! > 0) {
+          _selectedRating = rate.userRate!.clamp(0, 5);
+        }
+      });
+    } catch (e) {
+      debugPrint('Error fetching product rate: $e');
+    }
   }
 
   List<SizeQuantityModel> get _availableSizeQuantities {
@@ -266,6 +290,10 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
         isLoading = false;
       });
 
+      await _loadProductRate(
+        productIdOverride: (details ?? product)?.id ?? productId,
+      );
+
       await _loadFavoriteState();
       if (!mounted) {
         return;
@@ -394,6 +422,8 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
         ? safeStore.name
         : 'Unknown store';
     final storeLogo = safeStore.logo.trim();
+
+    final displayedRating = _resolvedProductRating ?? safeProduct.rating.toDouble();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
@@ -528,9 +558,9 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                       ),
                                       Row(
                                         children: [
-                                          _buildRatingStars(safeProduct.rating),
+                                          _buildRatingStars(displayedRating),
                                           Text(
-                                            " ${safeProduct.rating.toStringAsFixed(0)}/5",
+                                            ' ${displayedRating.toStringAsFixed(1)}/5',
                                             style: TextStyle(
                                               fontFamily: "bold",
                                               color: Colors.black,

@@ -326,3 +326,83 @@ export const checkout = async (req, res) => {
     });
   }
 };
+export const getRate = async (req, res) => {
+  const productId = typeof req.query.productId === 'string' ? req.query.productId.trim() : '';
+  const storeId   = typeof req.query.storeId   === 'string' ? req.query.storeId.trim()   : '';
+
+  if (!productId && !storeId) {
+    return res.status(400).json({ success: false, message: 'Store ID or Product ID is required!' });
+  }
+
+  try {
+    const user = await userModel.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found!' });
+    }
+
+    let entry;
+    let type;
+
+    if (productId) {
+      entry = await productModel.findById(productId).select('rates rating');
+      type  = 'product';
+      if (!entry) {
+        return res.status(404).json({ success: false, message: 'No product found!' });
+      }
+    } else {
+      entry = await storeModel.findById(storeId).select('rates rating');
+      type  = 'store';
+      if (!entry) {
+        return res.status(404).json({ success: false, message: 'No store found!' });
+      }
+    }
+
+    const userRate = entry.rates.find(
+      (r) => r.user.toString() === user._id.toString()
+    );
+
+    return res.status(200).json({
+      success: true,
+      type,
+      rating: entry.rating,        // average rating
+      totalRates: entry.rates.length,
+      userRate: userRate ? userRate.rate : null, // current user's rating or null
+    });
+  } catch (error) {
+    console.error('GetRate handler error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+  export const getProfile = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user._id).select(
+      'username email firstName lastName phone address dateOfBirth gender isSeller isVerified lastLogin createdAt'
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found!' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: {
+        id:          user._id,
+        username:    user.username,
+        email:       user.email,
+        firstName:   user.firstName,
+        lastName:    user.lastName,
+        phone:       user.phone,
+        address:     user.address,
+        dateOfBirth: user.dateOfBirth,
+        gender:      user.gender,
+        isSeller:    user.isSeller,
+        isVerified:  user.isVerified,
+        lastLogin:   user.lastLogin,
+        createdAt:   user.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error('GetProfile handler error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+};

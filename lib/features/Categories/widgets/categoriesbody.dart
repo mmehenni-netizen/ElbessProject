@@ -485,6 +485,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                 final product = widget.products[index];
                 return ItemCard(
                   imagePath: product.imageUrl,
+                  productId: product.id,
                   storeName: product.store?.name ?? '',
                   itemName: product.name,
                   price: product.price.toStringAsFixed(2),
