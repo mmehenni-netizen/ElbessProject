@@ -4,7 +4,9 @@ import nodemailer from "nodemailer";
 dotenv.config();
 
 export const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: process.env.MAILTRAP_HOST,
+  port: Number(process.env.MAILTRAP_PORT),
+  secure: false,
   auth: {
     user: process.env.MAILTRAP_USER,
     pass: process.env.MAILTRAP_PASS,
