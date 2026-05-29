@@ -8,6 +8,7 @@ import authRoute from "./routes/auth.js";
 import actionsRoute from "./routes/actions.js";
 import debugRoute from "./routes/debug.js";
 import fetchRoute from "./routes/fetch.js";
+import { transporter } from "./mailtrap/config.js";
 
 const app = express();
 
@@ -25,6 +26,10 @@ app.use("/api/debug", debugRoute);
 const startServer = async () => {
   try {
     await connectDB();
+    // Verify transporter connectivity (non-blocking log)
+    transporter.verify()
+      .then(() => console.log('SMTP transporter verified successfully'))
+      .catch((err) => console.log('SMTP transporter verification failed:', err.message || err));
   } catch (error) {
     console.log(`Database connection failed: ${error.message}`);
   }
