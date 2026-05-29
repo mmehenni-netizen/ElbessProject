@@ -23,6 +23,68 @@ class _FillbodyState extends State<Fillbody> {
   final TextEditingController genderController = TextEditingController();
   bool _isLoading = false;
 
+  // Algeria wilayas for autocomplete
+  static const List<String> _algeriaWilayas = [
+    "Adrar",
+    "Chlef",
+    "Laghouat",
+    "Oum El Bouaghi",
+    "Batna",
+    "Bejaia",
+    "Biskra",
+    "Bechar",
+    "Blida",
+    "Bouira",
+    "Tamanrasset",
+    "Tebessa",
+    "Tlemcen",
+    "Tiaret",
+    "Tizi Ouzou",
+    "Algiers",
+    "Djelfa",
+    "Jijel",
+    "Setif",
+    "Saida",
+    "Skikda",
+    "Sidi Bel Abbes",
+    "Annaba",
+    "Guelma",
+    "Constantine",
+    "Medea",
+    "Mostaganem",
+    "M'Sila",
+    "Mascara",
+    "Ouargla",
+    "Oran",
+    "El Bayadh",
+    "Illizi",
+    "Bordj Bou Arreridj",
+    "Boumerdes",
+    "El Tarf",
+    "Tindouf",
+    "Tissemsilt",
+    "El Oued",
+    "Khenchela",
+    "Souk Ahras",
+    "Tipaza",
+    "Mila",
+    "Ain Defla",
+    "Naama",
+    "Ain Temouchent",
+    "Ghardaia",
+    "Relizane",
+    "Timimoun",
+    "Bordj Badji Mokhtar",
+    "Ouled Djellal",
+    "Beni Abbes",
+    "In Salah",
+    "In Guezzam",
+    "Touggourt",
+    "Djanet",
+    "El M'Ghair",
+    "El Meniaa",
+  ];
+
   Future<void> setProfile() async {
     if (_isLoading) {
       return;
@@ -47,6 +109,11 @@ class _FillbodyState extends State<Fillbody> {
           address.isEmpty ||
           gender.isEmpty) {
         throw ApiError(message: 'All fields are required !');
+      }
+
+      // Ensure the address is one of the Algerian wilayas
+      if (!_algeriaWilayas.map((e) => e.toLowerCase()).contains(address.toLowerCase())) {
+        throw ApiError(message: 'Please select a valid wilaya from the list');
       }
 
       final dateOfBirth = DateTime.tryParse(dateOfBirthText);
@@ -179,7 +246,39 @@ class _FillbodyState extends State<Fillbody> {
               Gap(20),
               FillTextField(hint: "yyyy-MM-dd : Date of birth", controller: dateofbirthController),
               Gap(20),
-              FillTextField(hint: "Adress", controller: adressController),
+              // Use a required Dropdown so user must pick one wilaya
+              DropdownButtonFormField<String>(
+                value: _algeriaWilayas.contains(adressController.text) ? adressController.text : null,
+                decoration: InputDecoration(
+                  hintText: 'Select your wilaya',
+                  filled: true,
+                  fillColor: const Color(0xFFF4F4F4),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 6),
+                ),
+                items: _algeriaWilayas
+                    .map((w) => DropdownMenuItem<String>(value: w, child: Text(w)))
+                    .toList(),
+                onChanged: (val) {
+                  adressController.text = val ?? '';
+                  setState(() {});
+                },
+                validator: (val) {
+                  if (val == null || val.isEmpty) return 'Please select your wilaya';
+                  return null;
+                },
+              ),
               Gap(20),
               FillTextField(hint: "male/female", controller: genderController),
               const Gap(60),

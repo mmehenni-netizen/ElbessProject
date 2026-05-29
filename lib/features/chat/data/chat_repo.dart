@@ -306,7 +306,7 @@ Rules:
 
     return ProductCard(
       name: product.name,
-      price: '\$${product.price.toStringAsFixed(2)}',
+      price: 'DZD ${product.price.toStringAsFixed(2)}',
       tag: tag,
       icon: _iconForProduct(product),
       color: _colorForProduct(product, rank),

@@ -1,6 +1,7 @@
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/network/network_config.dart';
 import 'package:elbess/core/utils/pref_helpers.dart';
+import 'package:elbess/core/utils/price_formatter.dart';
 import 'package:elbess/features/checkout/presentation/checkout_view.dart';
 import 'package:elbess/features/chat/views/chat_veiw.dart';
 import 'package:elbess/features/home/data/product_model.dart';
@@ -584,7 +585,7 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
-                                    "\$${safeProduct.price.toStringAsFixed(2)}",
+                                    formatDzPrice(safeProduct.price),
                                     style: TextStyle(
                                       fontFamily: "bold",
                                       color: AppColors.primary,
@@ -889,7 +890,7 @@ class _ProductDetailBodyState extends State<ProductDetailBody> {
                                                 : 'Product',
                                             productImage: productImage,
                                             productPrice: safeProduct.price > 0
-                                                ? '\$${safeProduct.price.toStringAsFixed(2)}'
+                                                ? formatDzPrice(safeProduct.price)
                                                 : null,
                                           ),
                                         ),

@@ -1,5 +1,6 @@
 import 'package:elbess/features/favorites/widgets/favoritecard.dart';
 import 'package:elbess/core/utils/pref_helpers.dart';
+import 'package:elbess/core/utils/price_formatter.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/features/home/data/store_model.dart';
 import 'package:elbess/features/productdetail/data/details_repo.dart';
@@ -117,7 +118,7 @@ class _FavoritesbodyState extends State<Favoritesbody> {
                                   category: item.category.isNotEmpty ? item.category : 'General',
                                   prdctname: item.name.isNotEmpty ? item.name : 'Product',
                                   brand: item.store?.name.isNotEmpty == true ? item.store!.name : 'Unknown store',
-                                  price: '\$${item.price.toStringAsFixed(2)}',
+                                  price: formatDzPrice(item.price),
                                   onRemoveTap: _isLoading ? null : () => _removeFavorite(item.id),
                                 );
                               },

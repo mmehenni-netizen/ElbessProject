@@ -1,7 +1,8 @@
-
 import 'dart:async';
 
+import 'package:elbess/core/utils/pref_helpers.dart';
 import 'package:elbess/features/Options_view/Presentation/options_view.dart';
+import 'package:elbess/root.dart'; // ✅ your HomeScreen/Root
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
@@ -19,22 +20,28 @@ class _SplashbodyState extends State<Splashbody> {
   @override
   void initState() {
     super.initState();
+
     Timer(const Duration(seconds: 3), () {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _fadeOut = true;
-      });
+      if (!mounted) return;
+      setState(() => _fadeOut = true);
     });
 
-    Timer(const Duration(milliseconds: 3600), () {
-      if (!mounted) {
-        return;
-      }
+    Timer(const Duration(milliseconds: 3600), () async {
+      if (!mounted) return;
+
+      // ✅ Check for saved token
+      final token = await PrefHelpers.getToken();
+      final isLoggedIn = token != null && token.isNotEmpty;
+
+      if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const OptionsView()),
+        MaterialPageRoute(
+          builder: (_) => isLoggedIn
+              ? const Root()        // ✅ skip login → go home
+              : const OptionsView() // go to login/signup
+        ),
       );
     });
   }
@@ -54,12 +61,12 @@ class _SplashbodyState extends State<Splashbody> {
               height: 42,
               fit: BoxFit.contain,
             ),
-            Gap(6),
-            Text(
+            const Gap(6),
+            const Text(
               'Own Your Look',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: const Color(0xFF8A5A44),
+                color: Color(0xFF8A5A44),
                 fontSize: 17,
                 fontFamily: 'meduim',
               ),

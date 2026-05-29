@@ -1,4 +1,5 @@
 import 'package:elbess/core/constants/colors.dart';
+import 'package:elbess/core/utils/price_formatter.dart';
 import 'package:elbess/features/checkout/data/order_model.dart';
 import 'package:elbess/features/track/widgets/ordertrack.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +29,7 @@ class _TrackCardState extends State<TrackCard> {
         : 'Product';
     final size = order.size.trim().isNotEmpty ? order.size.trim() : 'N/A';
     final deliveryType = order.office ? 'Office' : 'Home';
-    final priceText = '\$${order.productPrice.toStringAsFixed(2)}';
+    final priceText = formatDzPrice(order.productPrice);
     final statusSteps = _buildStatusSteps(order);
 
     return Padding(

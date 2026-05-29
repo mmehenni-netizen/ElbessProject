@@ -29,6 +29,474 @@ class _CheckoutBodyState extends State<CheckoutBody> {
   bool _shouldRemovePurchasedItemsFromCart = false;
   ProfileUser? _profileUser;
 
+  // Delivery rates per wilaya
+  static const List<Map<String, dynamic>> _deliveryWilayas = [
+    {
+      "id": 1,
+      "nameAr": "أدرار",
+      "nameEn": "Adrar",
+      "homeDelivery": 1400,
+      "deskDelivery": 1000,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 2,
+      "nameAr": "الشلف",
+      "nameEn": "Chlef",
+      "homeDelivery": 850,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 3,
+      "nameAr": "الأغواط",
+      "nameEn": "Laghouat",
+      "homeDelivery": 1000,
+      "deskDelivery": 500,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 4,
+      "nameAr": "أم البواقي",
+      "nameEn": "Oum El Bouaghi",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 5,
+      "nameAr": "باتنة",
+      "nameEn": "Batna",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 6,
+      "nameAr": "بجاية",
+      "nameEn": "Bejaia",
+      "homeDelivery": 800,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 7,
+      "nameAr": "بسكرة",
+      "nameEn": "Biskra",
+      "homeDelivery": 1000,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 8,
+      "nameAr": "بشار",
+      "nameEn": "Bechar",
+      "homeDelivery": 1200,
+      "deskDelivery": 500,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 9,
+      "nameAr": "البليدة",
+      "nameEn": "Blida",
+      "homeDelivery": 650,
+      "deskDelivery": 400,
+      "deliveryTime": "2 to 10 days",
+    },
+    {
+      "id": 10,
+      "nameAr": "البويرة",
+      "nameEn": "Bouira",
+      "homeDelivery": 750,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 11,
+      "nameAr": "تمنراست",
+      "nameEn": "Tamanrasset",
+      "homeDelivery": 1800,
+      "deskDelivery": 1000,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 12,
+      "nameAr": "تبسة",
+      "nameEn": "Tebessa",
+      "homeDelivery": 1000,
+      "deskDelivery": 500,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 13,
+      "nameAr": "تلمسان",
+      "nameEn": "Tlemcen",
+      "homeDelivery": 850,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 14,
+      "nameAr": "تيارت",
+      "nameEn": "Tiaret",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 15,
+      "nameAr": "تيزي وزو",
+      "nameEn": "Tizi Ouzou",
+      "homeDelivery": 750,
+      "deskDelivery": 400,
+      "deliveryTime": "2 to 12 days",
+    },
+    {
+      "id": 16,
+      "nameAr": "الجزائر",
+      "nameEn": "Algiers",
+      "homeDelivery": 400,
+      "deskDelivery": 0,
+      "deliveryTime": "2 to 7 days",
+    },
+    {
+      "id": 17,
+      "nameAr": "الجلفة",
+      "nameEn": "Djelfa",
+      "homeDelivery": 1000,
+      "deskDelivery": 500,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 18,
+      "nameAr": "جيجل",
+      "nameEn": "Jijel",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 19,
+      "nameAr": "سطيف",
+      "nameEn": "Setif",
+      "homeDelivery": 850,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 20,
+      "nameAr": "سعيدة",
+      "nameEn": "Saida",
+      "homeDelivery": 950,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 21,
+      "nameAr": "سكيكدة",
+      "nameEn": "Skikda",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 22,
+      "nameAr": "سيدي بلعباس",
+      "nameEn": "Sidi Bel Abbes",
+      "homeDelivery": 850,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 23,
+      "nameAr": "عنابة",
+      "nameEn": "Annaba",
+      "homeDelivery": 850,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 24,
+      "nameAr": "قالمة",
+      "nameEn": "Guelma",
+      "homeDelivery": 950,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 25,
+      "nameAr": "قسنطينة",
+      "nameEn": "Constantine",
+      "homeDelivery": 850,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 26,
+      "nameAr": "المدية",
+      "nameEn": "Medea",
+      "homeDelivery": 800,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 27,
+      "nameAr": "مستغانم",
+      "nameEn": "Mostaganem",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 28,
+      "nameAr": "المسيلة",
+      "nameEn": "M'Sila",
+      "homeDelivery": 850,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 29,
+      "nameAr": "معسكر",
+      "nameEn": "Mascara",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 30,
+      "nameAr": "ورقلة",
+      "nameEn": "Ouargla",
+      "homeDelivery": 1000,
+      "deskDelivery": 500,
+      "deliveryTime": "3 to 12 days",
+    },
+    {
+      "id": 31,
+      "nameAr": "وهران",
+      "nameEn": "Oran",
+      "homeDelivery": 850,
+      "deskDelivery": 400,
+      "deliveryTime": "2 to 18 days",
+    },
+    {
+      "id": 32,
+      "nameAr": "البيض",
+      "nameEn": "El Bayadh",
+      "homeDelivery": 1200,
+      "deskDelivery": 500,
+      "deliveryTime": "4 to 15 days",
+    },
+    {
+      "id": 33,
+      "nameAr": "إليزي",
+      "nameEn": "Illizi",
+      "homeDelivery": null,
+      "deskDelivery": 1500,
+      "deliveryTime": "4 to 15 days",
+    },
+    {
+      "id": 34,
+      "nameAr": "برج بوعريريج",
+      "nameEn": "Bordj Bou Arreridj",
+      "homeDelivery": 850,
+      "deskDelivery": 400,
+      "deliveryTime": "2 to 8 days",
+    },
+    {
+      "id": 35,
+      "nameAr": "بومرداس",
+      "nameEn": "Boumerdes",
+      "homeDelivery": 750,
+      "deskDelivery": 400,
+      "deliveryTime": "2 to 8 days",
+    },
+    {
+      "id": 36,
+      "nameAr": "الطارف",
+      "nameEn": "El Tarf",
+      "homeDelivery": 950,
+      "deskDelivery": null,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 37,
+      "nameAr": "تندوف",
+      "nameEn": "Tindouf",
+      "homeDelivery": 1500,
+      "deskDelivery": 1000,
+      "deliveryTime": "4 to 15 days",
+    },
+    {
+      "id": 38,
+      "nameAr": "تيسمسيلت",
+      "nameEn": "Tissemsilt",
+      "homeDelivery": 950,
+      "deskDelivery": null,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 39,
+      "nameAr": "الوادي",
+      "nameEn": "El Oued",
+      "homeDelivery": 1100,
+      "deskDelivery": 600,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 40,
+      "nameAr": "خنشلة",
+      "nameEn": "Khenchela",
+      "homeDelivery": 800,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 41,
+      "nameAr": "سوق أهراس",
+      "nameEn": "Souk Ahras",
+      "homeDelivery": 950,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 42,
+      "nameAr": "تيبازة",
+      "nameEn": "Tipaza",
+      "homeDelivery": 650,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 8 days",
+    },
+    {
+      "id": 43,
+      "nameAr": "ميلة",
+      "nameEn": "Mila",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 44,
+      "nameAr": "عين الدفلى",
+      "nameEn": "Ain Defla",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 45,
+      "nameAr": "النعامة",
+      "nameEn": "Naama",
+      "homeDelivery": 1200,
+      "deskDelivery": 500,
+      "deliveryTime": "4 to 15 days",
+    },
+    {
+      "id": 46,
+      "nameAr": "عين تموشنت",
+      "nameEn": "Ain Temouchent",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 47,
+      "nameAr": "غرداية",
+      "nameEn": "Ghardaia",
+      "homeDelivery": 1000,
+      "deskDelivery": 500,
+      "deliveryTime": "4 to 12 days",
+    },
+    {
+      "id": 48,
+      "nameAr": "غليزان",
+      "nameEn": "Relizane",
+      "homeDelivery": 900,
+      "deskDelivery": 400,
+      "deliveryTime": "4 to 8 days",
+    },
+    {
+      "id": 49,
+      "nameAr": "تيميمون",
+      "nameEn": "Timimoun",
+      "homeDelivery": null,
+      "deskDelivery": null,
+      "deliveryTime": "",
+    },
+    {
+      "id": 50,
+      "nameAr": "برج باجي مختار",
+      "nameEn": "Bordj Badji Mokhtar",
+      "homeDelivery": null,
+      "deskDelivery": null,
+      "deliveryTime": "",
+    },
+    {
+      "id": 51,
+      "nameAr": "أولاد جلال",
+      "nameEn": "Ouled Djellal",
+      "homeDelivery": null,
+      "deskDelivery": null,
+      "deliveryTime": "",
+    },
+    {
+      "id": 52,
+      "nameAr": "بني عباس",
+      "nameEn": "Beni Abbes",
+      "homeDelivery": null,
+      "deskDelivery": null,
+      "deliveryTime": "",
+    },
+    {
+      "id": 53,
+      "nameAr": "عين صالح",
+      "nameEn": "In Salah",
+      "homeDelivery": null,
+      "deskDelivery": null,
+      "deliveryTime": "",
+    },
+    {
+      "id": 54,
+      "nameAr": "عين قزام",
+      "nameEn": "In Guezzam",
+      "homeDelivery": null,
+      "deskDelivery": null,
+      "deliveryTime": "",
+    },
+    {
+      "id": 55,
+      "nameAr": "تقرت",
+      "nameEn": "Touggourt",
+      "homeDelivery": null,
+      "deskDelivery": null,
+      "deliveryTime": "",
+    },
+    {
+      "id": 56,
+      "nameAr": "جانت",
+      "nameEn": "Djanet",
+      "homeDelivery": null,
+      "deskDelivery": null,
+      "deliveryTime": "",
+    },
+    {
+      "id": 57,
+      "nameAr": "المغير",
+      "nameEn": "El M'Ghair",
+      "homeDelivery": null,
+      "deskDelivery": null,
+      "deliveryTime": "",
+    },
+    {
+      "id": 58,
+      "nameAr": "المنيعة",
+      "nameEn": "El Meniaa",
+      "homeDelivery": null,
+      "deskDelivery": null,
+      "deliveryTime": "",
+    },
+  ];
+
   bool get _isOfficeSelected => _selectedAddress == 1;
   bool get _isDomicileSelected => _selectedAddress == 0;
 
@@ -212,7 +680,42 @@ class _CheckoutBodyState extends State<CheckoutBody> {
     return double.tryParse(price?.toString() ?? '') ?? 0;
   }
 
-  String _money(double value) => '\$${value.toStringAsFixed(2)}';
+  String _money(double value) => 'DZD ${value.toStringAsFixed(2)}';
+
+  Map<String, dynamic>? _deliveryForWilaya(String wilaya) {
+    final w = wilaya.trim();
+    if (w.isEmpty) return null;
+    try {
+      return _deliveryWilayas.firstWhere((e) => (e['nameEn'] as String).toLowerCase() == w.toLowerCase());
+    } catch (e) {
+      return null;
+    }
+  }
+
+  double? get _shippingFeeValue {
+    final address = _profileUser?.address?.trim() ?? '';
+    final delivery = _deliveryForWilaya(address);
+    if (delivery == null) return null;
+    final fee = _isOfficeSelected ? delivery['deskDelivery'] : delivery['homeDelivery'];
+    if (fee == null) return null;
+    if (fee is num) return fee.toDouble();
+    return null;
+  }
+
+  String get _shippingFeeLabel {
+    final fee = _shippingFeeValue;
+    if (fee == null) return 'Not available';
+    if (fee == 0) return 'FREE';
+    return _money(fee);
+  }
+
+  String get _shippingTimeLabel {
+    final address = _profileUser?.address?.trim() ?? '';
+    final delivery = _deliveryForWilaya(address);
+    if (delivery == null) return '';
+    final time = delivery['deliveryTime']?.toString() ?? '';
+    return time;
+  }
 
   String get _profileDisplayName {
     final user = _profileUser;
@@ -431,7 +934,7 @@ class _CheckoutBodyState extends State<CheckoutBody> {
                                   ),
                                   _SummaryRow(
                                     label: 'Total Amount',
-                                    value: _money(visibleTotal),
+                                    value: _money(visibleTotal + (_shippingFeeValue ?? 0)),
                                     valueColor: AppColors.primary,
                                     isBold: true,
                                   ),

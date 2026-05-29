@@ -1,5 +1,6 @@
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/utils/pref_helpers.dart';
+import 'package:elbess/core/utils/price_formatter.dart';
 import 'package:elbess/features/cart/widgets/cartitem.dart';
 import 'package:elbess/features/checkout/presentation/checkout_view.dart';
 import 'package:flutter/material.dart';
@@ -163,7 +164,7 @@ class _CartbodyState extends State<Cartbody> {
                           ),
                         ),
                         Text(
-                          '\$${visibleTotal.toStringAsFixed(2)}',
+                          formatDzPrice(visibleTotal),
                           style: const TextStyle(
                             fontSize: 18,
                             fontFamily: 'bold',

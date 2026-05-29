@@ -59,11 +59,27 @@ class _SignupbodyState extends State<Signupbody> {
       });
 
       try {
-        await authRepo.signup(
+        // Debug logs to help diagnose hanging signups
+        try {
+          // ignore: avoid_print
+          print('Signup: calling authRepo.signup for ${emailController.text}');
+        } catch (_) {}
+
+        await authRepo
+            .signup(
           usernameController.text,
           emailController.text,
           passwordController.text,
+        )
+            .timeout(
+          const Duration(seconds: 15),
+          onTimeout: () => throw ApiError(message: 'Request timed out, please check your connection'),
         );
+
+        try {
+          // ignore: avoid_print
+          print('Signup: authRepo.signup returned successfully');
+        } catch (_) {}
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
@@ -91,7 +107,13 @@ class _SignupbodyState extends State<Signupbody> {
             return;
           }
         }
-        AppSnackBar.show(context, errorMessage);
+        // Log the error and show a user-friendly message
+        try {
+          // ignore: avoid_print
+          print('Signup error: $e');
+        } catch (_) {}
+
+        if (mounted) AppSnackBar.show(context, errorMessage);
       } finally {
         if (mounted) {
           setState(() {

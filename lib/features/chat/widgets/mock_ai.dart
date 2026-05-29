@@ -5,21 +5,21 @@ class MockAI {
   static final List<ProductCard> _baggyJeansRelated = [
     const ProductCard(
       name: 'Oversized Cargo Pants',
-      price: '\$58.99',
+      price: 'DZD 58.99',
       tag: 'Best Match',
       icon: Icons.style_rounded,
       color: Color(0xFF7C3AED),
     ),
     const ProductCard(
       name: 'Wide Leg Trousers',
-      price: '\$49.99',
+      price: 'DZD 49.99',
       tag: 'Trending',
       icon: Icons.local_fire_department_rounded,
       color: Color(0xFFEF4444),
     ),
     const ProductCard(
       name: 'Relaxed Fit Chinos',
-      price: '\$44.99',
+      price: 'DZD 44.99',
       tag: 'New Arrival',
       icon: Icons.fiber_new_rounded,
       color: Color(0xFF10B981),
@@ -29,14 +29,14 @@ class MockAI {
   static final List<ProductCard> _styleRelated = [
     const ProductCard(
       name: 'Graphic Oversized Tee',
-      price: '\$29.99',
+      price: 'DZD 29.99',
       tag: 'Pairs Well',
       icon: Icons.checkroom_rounded,
       color: Color(0xFF2563EB),
     ),
     const ProductCard(
       name: 'Chunky Sneakers',
-      price: '\$89.99',
+      price: 'DZD 89.99',
       tag: 'Complete Look',
       icon: Icons.directions_walk_rounded,
       color: Color(0xFFF59E0B),
@@ -81,7 +81,7 @@ class MockAI {
         id: id,
         role: MessageRole.assistant,
         text:
-            'The $productName is currently priced at \$39.99. We also have a 15% discount for members! 🎉 Want me to show you more items in a similar price range?',
+            'The $productName is currently priced at DZD 39.99. We also have a 15% discount for members! 🎉 Want me to show you more items in a similar price range?',
       );
     }
 

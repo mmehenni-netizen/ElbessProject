@@ -1,5 +1,6 @@
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/network/network_config.dart';
+import 'package:elbess/core/utils/price_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -170,7 +171,7 @@ class _CartitemState extends State<Cartitem> {
                         Row(
                           children: [
                             Text(
-                              '\$${widget.price.toStringAsFixed(2)}',
+                              formatDzPrice(widget.price),
                               style: TextStyle(
                                 color: AppColors.primary,
                                 fontSize: 18 * scale,

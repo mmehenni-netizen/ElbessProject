@@ -1,6 +1,7 @@
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/network/network_config.dart';
 import 'package:elbess/core/utils/pref_helpers.dart';
+import 'package:elbess/core/utils/price_formatter.dart';
 import 'package:elbess/features/home/data/product_model.dart';
 import 'package:elbess/features/home/data/store_model.dart';
 import 'package:elbess/features/home/widgets/item_card.dart';
@@ -422,7 +423,7 @@ class _StoreBodyState extends State<StoreBody> {
                                 productId: product.id,
                                 storeName: store?.name ?? '',
                                 itemName: product.name,
-                                price: product.price.toStringAsFixed(2),
+                                price: formatDzPrice(product.price),
                                 rating: product.rating.toString(),
                                 isFavorite: _favoriteProductIds.contains(
                                   product.id,

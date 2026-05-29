@@ -78,7 +78,11 @@ export const signup = async (req, res) => {
       userExists.verificationToken = verificationToken;
       await userExists.save();
 
-      await sendVerificationEmail(userExists.email, verificationToken);
+      try {
+        await sendVerificationEmail(userExists.email, verificationToken);
+      } catch (emailErr) {
+        console.log('Warning: verification email failed to send for existing user', emailErr);
+      }
 
       res.status(201).json({
         success: true,
@@ -101,9 +105,12 @@ export const signup = async (req, res) => {
 
       await user.save();
 
-      // Email
-
-      await sendVerificationEmail(user.email, verificationToken);
+      // Email - do not block signup if email sending fails
+      try {
+        await sendVerificationEmail(user.email, verificationToken);
+      } catch (emailErr) {
+        console.log('Warning: verification email failed to send for new user', emailErr);
+      }
 
       res.status(201).json({
         success: true,

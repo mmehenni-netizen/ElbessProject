@@ -1,5 +1,6 @@
 import 'package:elbess/core/constants/colors.dart';
 import 'package:elbess/core/utils/pref_helpers.dart';
+import 'package:elbess/core/utils/price_formatter.dart';
 import 'package:elbess/features/favorites/presentation/favoritesview.dart';
 import 'package:elbess/features/home/data/home_repo.dart';
 import 'package:elbess/features/home/data/product_model.dart';
@@ -401,7 +402,7 @@ class _HomebodyState extends State<Homebody> {
                         productId: products![index].id,
                         storeName: products![index].store?.name ?? '',
                         itemName: products![index].name,
-                        price: products![index].price.toStringAsFixed(2),
+                        price: formatDzPrice(products![index].price),
                         rating: products![index].rating.toString(),
                         isFavorite: _favoriteProductIds.contains(
                           products![index].id,
