@@ -1,10 +1,11 @@
-import {transporter} from "./config.js"
+import { sender, transporter } from "./config.js"
 import { PASSWORD_RESET_REQUEST_TEMPLATE, PASSWORD_RESET_SUCCESS_TEMPLATE, VERIFICATION_EMAIL_TEMPLATE } from "./emailTemplate.js"
 
 export const sendVerificationEmail = async (email, verificationToken) => {
 
     try {
         const response = await transporter.sendMail({
+            from: sender,
             to: email,
             subject: "Verify your email",
             html: VERIFICATION_EMAIL_TEMPLATE.replace("{verificationCode}", verificationToken)
@@ -21,6 +22,7 @@ export const sendVerificationEmail = async (email, verificationToken) => {
 export const sendResetEmail = async (email, resetUrl) => {
     try {
         const response = await transporter.sendMail({
+            from: sender,
             to: email,
             subject: "Password Reset Request",
             html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetUrl)
@@ -36,6 +38,7 @@ export const sendResetEmail = async (email, resetUrl) => {
 export const sendResetSuccessEmail = async (email) => {
     try {
         const response = await transporter.sendMail({
+            from: sender,
             to: email,
             subject: "Password Reset Success",
             html: PASSWORD_RESET_SUCCESS_TEMPLATE

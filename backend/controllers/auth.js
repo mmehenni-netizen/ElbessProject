@@ -76,16 +76,14 @@ export const signup = async (req, res) => {
 
     if (userExists && !userExists.isVerified) {
       userExists.verificationToken = verificationToken;
+      userExists.verificationTokenExpiresAt = Date.now() + 10 * 60 * 1000;
       await userExists.save();
 
-      // Fire-and-forget email send so signup isn't blocked if SMTP hangs
-      sendVerificationEmail(userExists.email, verificationToken).catch((emailErr) => {
-        console.log('Warning: verification email failed to send for existing user', emailErr);
-      });
+      await sendVerificationEmail(userExists.email, verificationToken);
 
       res.status(201).json({
         success: true,
-        message: "User exist but not verified ! verification email sent",
+        message: "User exists but is not verified. Verification email sent.",
         user: {
           ...userExists._doc,
           password: undefined,
@@ -99,20 +97,16 @@ export const signup = async (req, res) => {
         password: hashedPass,
         username: username,
         verificationToken: verificationToken,
-        verificationTokenExpiresAt: Date.now() + 60 * 1000,
+        verificationTokenExpiresAt: Date.now() + 10 * 60 * 1000,
       });
 
       await user.save();
 
-      // Email - do not block signup if email sending fails
-      // Fire-and-forget email send so signup isn't blocked if SMTP hangs
-      sendVerificationEmail(user.email, verificationToken).catch((emailErr) => {
-        console.log('Warning: verification email failed to send for new user', emailErr);
-      });
+      await sendVerificationEmail(user.email, verificationToken);
 
       res.status(201).json({
         success: true,
-        message: "User created succesfuly ! verification email sent",
+        message: "User created successfully. Verification email sent.",
         user: {
           ...user._doc,
           password: undefined,
