@@ -118,67 +118,31 @@ Future<ProductModel?> getProductDetails(String productId) async {
     return _storeRepo.getStoreById(storeId);
   }
 
-  Future<String?> rateProduct({
-    required String productId,
-    required int rating,
-  }) async {
-    try {
-      // Prepare robust payload with multiple accepted keys
-      final trimmedProductId = productId.trim();
-      final payload = <String, dynamic>{
-        'productId': trimmedProductId,
-        'product_id': trimmedProductId,
-        'productID': trimmedProductId,
-        'rating': rating,
-        'rate': rating,
-      };
+Future<String?> rateProduct({
+  required String productId,
+  required int rating,
+}) async {
+  try {
+    final payload = {
+      'productId': productId.trim(),
+      'rating': rating,
+    };
 
-      // If available, include storeId as well (backend accepts either)
-      try {
-        final possibleStoreId = (await getProductDetails(trimmedProductId))?.store?.id ?? '';
-        if (possibleStoreId.isNotEmpty) {
-          payload['storeId'] = possibleStoreId;
-          payload['store_id'] = possibleStoreId;
-          payload['storeID'] = possibleStoreId;
-        }
-      } catch (_) {}
+    final response = await _apiService.post('/actions/rate', payload);
 
-      // Log request body for debugging
-      try {
-        debugPrint('rateProduct -> request payload: $payload');
-      } catch (_) {}
-
-      final response = await _apiService.post('/actions/rate', payload);
-
-      // Debugging: log raw response and its type to help trace backend errors
-      try {
-        debugPrint('rateProduct -> raw response: $response');
-        debugPrint('rateProduct -> response runtimeType: ${response.runtimeType}');
-        if (response is Map) {
-          debugPrint('rateProduct -> response keys: ${response.keys.toList()}');
-        }
-      } catch (e) {
-        debugPrint('rateProduct -> failed to print response debug info: $e');
-      }
-
-      if (response is ApiError) {
-        return response.message;
-      }
-
-      if (response is! Map<String, dynamic>) {
-        return 'Unexpected response from server: ${response?.toString() ?? 'null'}';
-      }
-
-      if (response['success'] == true) {
-        return null;
-      }
-
-      return (response['message'] as String?)?.trim().isNotEmpty == true
-          ? response['message'] as String
-          : 'Could not submit rating right now';
-    } catch (e) {
-      debugPrint('Error rating product: $e');
-      return 'Could not submit rating right now';
+    if (response is ApiError) {
+      return response.message;
     }
+
+    if (response is! Map<String, dynamic>) {
+      return 'Unexpected response from server';
+    }
+
+    if (response['success'] == true) return null;
+
+    return response['message']?.toString() ?? 'Could not submit rating right now';
+  } catch (e) {
+    debugPrint('Error rating product: $e');
+    return 'Could not submit rating right now';
   }
-}
+}}

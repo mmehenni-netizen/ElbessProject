@@ -33,7 +33,7 @@ class DioClient {
   Dio get dio => _dio;
 
   static String _resolveBaseUrl() {
-    final overrideBaseUrl = String.fromEnvironment(
+    final overrideBaseUrl = const String.fromEnvironment(
       'API_BASE_URL',
       defaultValue: '',
     ).trim();

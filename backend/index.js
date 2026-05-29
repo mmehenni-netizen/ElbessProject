@@ -1,7 +1,8 @@
-import express from "express";
 import dotenv from "dotenv";
-import cors from "cors";
+dotenv.config(); // ✅ Must be first
 
+import express from "express";
+import cors from "cors";
 import { connectDB } from "./config/db.js";
 import authRoute from "./routes/auth.js";
 import actionsRoute from "./routes/actions.js";
@@ -10,14 +11,11 @@ import fetchRoute from "./routes/fetch.js";
 
 const app = express();
 
-dotenv.config();
-
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || "0.0.0.0";
-app.use(express.json());
-// Also accept plain text bodies (some clients may send JSON with text/plain)
-app.use(express.text({ type: 'text/*' }));
+
 app.use(cors());
+app.use(express.json()); // ✅ Only this, no express.text()
 app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRoute);
 app.use("/api/actions", actionsRoute);
@@ -25,15 +23,15 @@ app.use("/api/fetch", fetchRoute);
 app.use("/api/debug", debugRoute);
 
 const startServer = async () => {
-  app.listen(PORT, HOST, () => {
-    console.log(`server is running on http://${HOST}:${PORT}`);
-  });
-
   try {
     await connectDB();
   } catch (error) {
-    console.log(`Database connection failed during startup: ${error.message}`);
+    console.log(`Database connection failed: ${error.message}`);
   }
+
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running on http://${HOST}:${PORT}`);
+  });
 };
 
 startServer();

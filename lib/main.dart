@@ -10,8 +10,12 @@ import 'package:elbess/features/productdetail/presentation/product_detail_view.d
 import 'package:elbess/features/store_page/presentation/store_view.dart';
 import 'package:elbess/root.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
+
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     // ignore: avoid_print
@@ -21,7 +25,7 @@ void main() {
   PlatformDispatcher.instance.onError = (error, stack) {
     // ignore: avoid_print
     print('Uncaught async error: $error');
-    // ignore: avoid_print
+    
     print(stack);
     return true;
   };

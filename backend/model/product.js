@@ -92,9 +92,8 @@ const ProductSchema = new Schema({
   },
 });
 
-ProductSchema.pre("validate", function normalizeLegacyGender(next) {
+ProductSchema.pre("validate", function normalizeLegacyGender() {
   this.gender = normalizeProductGender(this.gender);
-  next();
 });
 
 export const productModel = mongoose.model("Product", ProductSchema);

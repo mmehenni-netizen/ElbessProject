@@ -123,116 +123,77 @@ export const setFavorite = async (req, res) => {
 };
 
 export const rate = async (req, res) => {
-  console.log('Rate handler request body:', req.body);
-  console.log('Rate handler content-type:', req.headers['content-type']);
-  try {
-    console.log('Rate handler body JSON:', JSON.stringify(req.body));
-  } catch (_) {}
-  console.log('Has productId property:', Object.prototype.hasOwnProperty.call(req.body || {}, 'productId'));
-  // If the body was parsed as plain text, try to parse it as JSON
-  let rawBody = req.body || {};
-  if (typeof rawBody === 'string' && rawBody.trim().length > 0) {
-    try {
-      rawBody = JSON.parse(rawBody);
-      console.log('Rate handler: parsed string body to JSON');
-    } catch (e) {
-      console.log('Rate handler: failed to parse string body as JSON');
-      rawBody = {};
-    }
-  }
-  const rawProductId = rawBody.productId ?? rawBody.productID ?? rawBody.product_id ?? '';
-  const rawStoreId = rawBody.storeId ?? rawBody.storeID ?? rawBody.store_id ?? '';
-  const rawRating = rawBody.rating ?? rawBody.Rating ?? rawBody.rate ?? '';
+  const body = req.body || {};
 
-  console.log('Rate handler parsed values (raw):', { rawProductId, rawStoreId, rawRating });
+  const rawProductId = body.productId ?? body.productID ?? body.product_id ?? '';
+  const rawStoreId   = body.storeId   ?? body.storeID   ?? body.store_id   ?? '';
+  const rawRating    = body.rating    ?? body.Rating     ?? body.rate       ?? '';
 
-  const productId = typeof rawProductId === 'string'
-    ? rawProductId.trim()
-    : (rawProductId != null ? String(rawProductId) : '');
-
-  const storeId = typeof rawStoreId === 'string'
-    ? rawStoreId.trim()
-    : (rawStoreId != null ? String(rawStoreId) : '');
-
+  const productId   = String(rawProductId).trim();
+  const storeId     = String(rawStoreId).trim();
   const parsedRating = Number(rawRating);
 
-  console.log('Rate handler normalized values:', { productId, storeId, parsedRating });
-
-  // Validate input early and return 400 for client errors
   if (!productId && !storeId) {
-    return res.status(400).json({ success: false, message: 'Store ID or Product ID is required !' });
+    return res.status(400).json({ success: false, message: 'Store ID or Product ID is required!' });
   }
 
   if (!Number.isFinite(parsedRating) || parsedRating < 1 || parsedRating > 5) {
-    return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5 !' });
+    return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5!' });
   }
 
-  let type = "";
+  let type = '';
 
   try {
     const user = await userModel.findById(req.user._id);
-
     if (!user) {
-      throw new Error("User not found !");
+      return res.status(404).json({ success: false, message: 'User not found!' });
     }
 
     let entry;
 
     if (productId) {
       entry = await productModel.findById(productId);
-      type = "product";
-
+      type  = 'product';
       if (!entry) {
-        throw new Error("No product found !");
+        return res.status(404).json({ success: false, message: 'No product found!' });
       }
-    } else if (storeId) {
+    } else {
       entry = await storeModel.findById(storeId);
-      type = "store";
-
+      type  = 'store';
       if (!entry) {
-        throw new Error("No store found !");
+        return res.status(404).json({ success: false, message: 'No store found!' });
       }
     }
 
     const hasRated = entry.rates.some(
-      (r) => r.user.toString() === user._id.toString(),
+      (r) => r.user.toString() === user._id.toString()
     );
 
     if (hasRated) {
       entry.rates = entry.rates.map((r) => {
-        if (r.user.toString() === user._id.toString()) {
-          r.rate = parsedRating;
-        }
+        if (r.user.toString() === user._id.toString()) r.rate = parsedRating;
         return r;
       });
     } else {
-      entry.rates.push({
-        user: user._id,
-        rate: parsedRating,
-      });
+      entry.rates.push({ user: user._id, rate: parsedRating });
     }
-
-    // Recalculate the average rating
 
     const newRating =
       Math.floor(
-        (entry.rates.reduce((acc, r) => acc + r.rate, 0) / entry.rates.length) *
-          10,
+        (entry.rates.reduce((acc, r) => acc + r.rate, 0) / entry.rates.length) * 10
       ) / 10;
-    entry.rating = newRating;
 
+    entry.rating = newRating;
     await entry.save();
 
     return res.status(200).json({
       success: true,
-      message: `Rating ${type} submitted successfully !`,
+      message: `Rating ${type} submitted successfully!`,
       rating: newRating,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.error('Rate handler error:', error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

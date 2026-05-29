@@ -21,11 +21,7 @@ class ChatRepo {
       return _service;
     }
 
-    try {
-      return GenerativeAIService(ApiKeyProvider.requireFromDartDefine());
-    } catch (_) {
-      return null;
-    }
+    return GenerativeAIService(ApiKeyProvider.requireApiKey());
   }
 
   Future<ChatMessage> replyForProduct({
@@ -35,11 +31,20 @@ class ChatRepo {
     final trimmedProductName = productName.trim().isEmpty ? 'this product' : productName.trim();
     final trimmedUserMessage = userMessage.trim();
 
-    final service = _resolveService();
-    if (service == null) {
-      return _aiUnavailableResponse(
-        'AI key is missing. Run the app with --dart-define=GENAI_API_KEY=... to get real responses.',
-      );
+    late final GenerativeAIService service;
+    try {
+      service = _resolveService()!;
+    } on StateError catch (error) {
+      final errorMessage = error.message?.toString() ?? error.toString();
+      final lowerMessage = errorMessage.toLowerCase();
+
+      if (lowerMessage.contains('not provided')) {
+        return _aiUnavailableResponse(
+          'AI key is missing. Add GEMINI_API_KEY to .env or pass --dart-define=GEMINI_API_KEY=... to get real responses.',
+        );
+      }
+
+      return _aiUnavailableResponse(errorMessage);
     }
 
     final prompt = _buildPrompt(
@@ -71,6 +76,13 @@ class ChatRepo {
       );
     } catch (e) {
       final errorText = e.toString();
+      if (errorText.toLowerCase().contains('api key not valid') ||
+          errorText.toLowerCase().contains('invalid api key')) {
+        return _aiUnavailableResponse(
+          'Gemini rejected the API key. Check that GEMINI_API_KEY is a real Google AI Studio key, remove quotes/spaces, then fully restart the app.',
+        );
+      }
+
       return _aiUnavailableResponse(
         'AI service is unavailable right now. Please try again. $errorText',
       );
@@ -205,6 +217,9 @@ Rules:
     final lowerAi = aiText.toLowerCase();
     final lowerProductName = productName.toLowerCase();
 
+    // Phrase extraction for user message (bigrams/trigrams)
+    final messagePhrases = _extractPhrases(userMessage);
+
     if (lowerMessage.contains('wear') || lowerMessage.contains('outfit') || lowerMessage.contains('style')) {
       if (_looksLikeStyleMatch(productText, aiText)) {
         score += 4;
@@ -215,6 +230,14 @@ Rules:
       score += 2;
     }
 
+    // Boost when the user explicitly asked for a product type (e.g., 'pants')
+    final requestedTypes = <String>{'pants', 'trouser', 'jean', 'short', 'skirt', 'dress', 'shirt', 'top', 'jacket', 'coat', 'shoe', 'sneaker'};
+    for (final t in requestedTypes) {
+      if (lowerMessage.contains(t) && productText.contains(t)) {
+        score += 5; // strong boost for requested category matches
+      }
+    }
+
     if (lowerAi.contains(product.name.toLowerCase())) {
       score += 4;
     }
@@ -223,7 +246,49 @@ Rules:
       score += 3;
     }
 
+    // Boost for phrase matches (e.g., 'old money') and style attributes
+    final phraseMatches = messagePhrases.where((p) => productText.contains(_normalizeText(p))).length;
+    score += phraseMatches * 4;
+
+    // Style attribute mapping: when user mentions a style phrase, prefer products containing style attributes
+    final stylePhraseMap = <String, Set<String>>{
+      'old money': {'tailored', 'tweed', 'loafer', 'loafers', 'navy', 'silk', 'structured', 'classic', 'espadrille', 'espadrilles', 'wide leg', 'tailored'},
+      'preppy': {'polo', 'oxford', 'cotton', 'navy', 'khaki', 'twill'},
+      'streetwear': {'oversize', 'graphic', 'hoodie', 'sneaker', 'cargo'},
+      'formal': {'tailored', 'blazer', 'suit', 'pleat', 'crepe'},
+    };
+
+    for (final phrase in messagePhrases) {
+      final al = phrase.toLowerCase();
+      if (stylePhraseMap.containsKey(al)) {
+        final attrs = stylePhraseMap[al]!;
+        for (final attr in attrs) {
+          if (productText.contains(attr)) {
+            score += 3;
+          }
+        }
+      }
+    }
+
     return score;
+  }
+
+  Set<String> _extractPhrases(String value) {
+    final normalized = _normalizeText(value);
+    final parts = normalized.split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
+    final phrases = <String>{};
+
+    // Bigrams
+    for (var i = 0; i + 1 < parts.length; i++) {
+      phrases.add('${parts[i]} ${parts[i + 1]}');
+    }
+
+    // Trigrams
+    for (var i = 0; i + 2 < parts.length; i++) {
+      phrases.add('${parts[i]} ${parts[i + 1]} ${parts[i + 2]}');
+    }
+
+    return phrases;
   }
 
   ProductCard _toProductCard(
