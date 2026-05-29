@@ -83,9 +83,17 @@ class DioClient {
     final isAndroidEmulator = uri.scheme == 'http' || uri.scheme == 'https';
     final host = uri.host;
     if (isAndroidEmulator && (host == 'localhost' || host == '127.0.0.1')) {
-      return uri.replace(host: '10.0.2.2').toString();
+      return _ensureSingleApiPath(uri.replace(host: '10.0.2.2').toString());
     }
 
-    return baseUrl;
+    return _ensureSingleApiPath(baseUrl);
+  }
+
+  static String _ensureSingleApiPath(String baseUrl) {
+    final trimmed = baseUrl.trim();
+    if (trimmed.endsWith('/api/api')) {
+      return trimmed.substring(0, trimmed.length - 4);
+    }
+    return trimmed;
   }
 }

@@ -1,20 +1,20 @@
 import dotenv from "dotenv";
-import nodemailer from "nodemailer";
+import nodemailer from "nodemailer"
 
-dotenv.config();
+
+dotenv.config()
+
 
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
-  requireTLS: true,
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
+    user: process.env.MAILTRAP_USER,
+    pass: process.env.MAILTRAP_PASS
   },
+  tls: {
+    rejectUnauthorized: false, // This bypasses certificate validation
+    ciphers: 'SSLv3' // Sometimes needed for Gmail
+  }
 });
-
-export const sender = `"Elbess" <${process.env.GMAIL_USER}>`;
