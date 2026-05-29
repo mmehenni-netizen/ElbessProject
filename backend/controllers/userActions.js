@@ -372,7 +372,9 @@ export const getRate = async (req, res) => {
     console.error('GetRate handler error:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
-  export const getProfile = async (req, res) => {
+};
+
+export const getProfile = async (req, res) => {
   try {
     const user = await userModel.findById(req.user._id).select(
       'username email firstName lastName phone address dateOfBirth gender isSeller isVerified lastLogin createdAt'
@@ -404,5 +406,4 @@ export const getRate = async (req, res) => {
     console.error('GetProfile handler error:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
-};
 };
