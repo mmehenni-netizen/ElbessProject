@@ -75,6 +75,7 @@ class _HomebodyState extends State<Homebody> {
       );
 
       await _loadFavorites();
+      await getProducts();
     } catch (e, st) {
       // Log and show a non-fatal error instead of allowing a potential crash
       // to take down the emulator.

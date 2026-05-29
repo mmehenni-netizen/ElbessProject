@@ -184,6 +184,7 @@ class _StoreBodyState extends State<StoreBody> {
     );
 
     await _loadFavorites();
+    await _loadStore();
   }
 
   @override

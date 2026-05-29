@@ -47,11 +47,12 @@ class _ItemCardState extends State<ItemCard> {
   @override
   void didUpdateWidget(covariant ItemCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // ✅ Only reload if productId actually changed
-    if (oldWidget.productId != widget.productId) {
+    if (oldWidget.productId != widget.productId || oldWidget.rating != widget.rating) {
       _resolvedRating = widget.rating;
-      _loadRemoteRating();
     }
+
+    // Always revalidate rating after parent rebuilds (e.g. returning from detail screen).
+    _loadRemoteRating();
   }
 
   Future<void> _loadRemoteRating() async {

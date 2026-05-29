@@ -6,6 +6,25 @@ import { orderModel } from "../model/order.js";
 //setfavorite
 //checkout
 
+const toOneDecimal = (value) => Math.round(value * 10) / 10;
+
+const computeAverageRating = (rates) => {
+  if (!Array.isArray(rates) || rates.length === 0) {
+    return 0;
+  }
+
+  const numericRates = rates
+    .map((item) => Number(item?.rate))
+    .filter((value) => Number.isFinite(value));
+
+  if (numericRates.length === 0) {
+    return 0;
+  }
+
+  const sum = numericRates.reduce((acc, value) => acc + value, 0);
+  return toOneDecimal(sum / numericRates.length);
+};
+
 export const setProfile = async (req, res) => {
   const { firstName, lastName, phone, dateOfBirth, address, gender } =
     req.body || {};
@@ -165,27 +184,19 @@ export const rate = async (req, res) => {
       }
     }
 
-    const hasRated = entry.rates.some(
-      (r) => r.user.toString() === user._id.toString()
+    const userId = user._id.toString();
+    const existingRateIndex = entry.rates.findIndex(
+      (r) => r.user.toString() === userId,
     );
 
-    if (hasRated) {
-      entry.rates = entry.rates.map((r) => {
-        if (r.user.toString() === user._id.toString()) r.rate = parsedRating;
-        return r;
-      });
+    if (existingRateIndex >= 0) {
+      entry.rates[existingRateIndex].rate = parsedRating;
     } else {
       entry.rates.push({ user: user._id, rate: parsedRating });
     }
+    entry.markModified('rates');
 
-    const totalRates = entry.rates.length;
-    const ratesSum = entry.rates.reduce(
-      (acc, r) => acc + (Number(r.rate) || 0),
-      0,
-    );
-    const newRating = totalRates > 0
-      ? Math.floor((ratesSum / totalRates) * 10) / 10
-      : 0;
+    const newRating = computeAverageRating(entry.rates);
 
     entry.rating = newRating;
     await entry.save();
@@ -194,6 +205,7 @@ export const rate = async (req, res) => {
       success: true,
       message: `Rating ${type} submitted successfully!`,
       rating: newRating,
+      totalRates: entry.rates.length,
     });
   } catch (error) {
     console.error('Rate handler error:', error);
@@ -361,31 +373,17 @@ export const getRate = async (req, res) => {
       }
     }
 
+    const totalRates = entry.rates.length;
     const userRate = entry.rates.find(
       (r) => r.user.toString() === user._id.toString()
     );
 
-    const totalRates = entry.rates.length;
-    const ratesSum = entry.rates.reduce(
-      (acc, r) => acc + (Number(r.rate) || 0),
-      0,
-    );
-    const averageRating = totalRates > 0
-      ? Math.floor((ratesSum / totalRates) * 10) / 10
-      : 0;
-
-    // Keep persisted rating in sync with computed average.
-    if (Math.abs((Number(entry.rating) || 0) - averageRating) >= 0.05) {
-      entry.rating = averageRating;
-      await entry.save();
-    }
-
     return res.status(200).json({
       success: true,
       type,
-      rating: averageRating,
+      rating: entry.rating,
       totalRates,
-      userRate: userRate ? userRate.rate : null, // current user's rating or null
+      userRate: userRate ? userRate.rate : null,
     });
   } catch (error) {
     console.error('GetRate handler error:', error);

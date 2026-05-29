@@ -441,6 +441,10 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     );
 
     await _loadFavorites();
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
   }
 
   @override
