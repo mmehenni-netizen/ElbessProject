@@ -72,7 +72,7 @@ class _SignupbodyState extends State<Signupbody> {
           passwordController.text,
         )
             .timeout(
-          const Duration(seconds: 15),
+          const Duration(seconds: 30),
           onTimeout: () => throw ApiError(message: 'Request timed out, please check your connection'),
         );
 

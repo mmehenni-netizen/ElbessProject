@@ -4,24 +4,24 @@ import nodemailer from "nodemailer"
 
 dotenv.config()
 
+const mailUser = process.env.GMAIL_USER || process.env.MAILTRAP_USER
+const mailPass = process.env.GMAIL_PASS || process.env.MAILTRAP_PASS
 
-console.log("MAILTRAP_USER:", process.env.MAILTRAP_USER)
-console.log("MAILTRAP_PASS:", process.env.MAILTRAP_PASS ? "OK" : "MISSING")
+console.log("SMTP_USER:", mailUser)
+console.log("SMTP_PASS:", mailPass ? "OK" : "MISSING")
 
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
+  requireTLS: true,
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
   auth: {
-    
-    user: process.env.MAILTRAP_USER,
-    pass: process.env.MAILTRAP_PASS
-
+    user: mailUser,
+    pass: mailPass
   },
-  tls: {
-    rejectUnauthorized: false, // This bypasses certificate validation
-    ciphers: 'SSLv3' // Sometimes needed for Gmail
-  }
 });
 
-    export const sender = `"Elbess" <${process.env.MAILTRAP_USER}>`;
+export const sender = `"Elbess" <${mailUser}>`;
