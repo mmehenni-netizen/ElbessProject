@@ -178,10 +178,14 @@ export const rate = async (req, res) => {
       entry.rates.push({ user: user._id, rate: parsedRating });
     }
 
-    const newRating =
-      Math.floor(
-        (entry.rates.reduce((acc, r) => acc + r.rate, 0) / entry.rates.length) * 10
-      ) / 10;
+    const totalRates = entry.rates.length;
+    const ratesSum = entry.rates.reduce(
+      (acc, r) => acc + (Number(r.rate) || 0),
+      0,
+    );
+    const newRating = totalRates > 0
+      ? Math.floor((ratesSum / totalRates) * 10) / 10
+      : 0;
 
     entry.rating = newRating;
     await entry.save();
@@ -361,11 +365,26 @@ export const getRate = async (req, res) => {
       (r) => r.user.toString() === user._id.toString()
     );
 
+    const totalRates = entry.rates.length;
+    const ratesSum = entry.rates.reduce(
+      (acc, r) => acc + (Number(r.rate) || 0),
+      0,
+    );
+    const averageRating = totalRates > 0
+      ? Math.floor((ratesSum / totalRates) * 10) / 10
+      : 0;
+
+    // Keep persisted rating in sync with computed average.
+    if (Math.abs((Number(entry.rating) || 0) - averageRating) >= 0.05) {
+      entry.rating = averageRating;
+      await entry.save();
+    }
+
     return res.status(200).json({
       success: true,
       type,
-      rating: entry.rating,        // average rating
-      totalRates: entry.rates.length,
+      rating: averageRating,
+      totalRates,
       userRate: userRate ? userRate.rate : null, // current user's rating or null
     });
   } catch (error) {
