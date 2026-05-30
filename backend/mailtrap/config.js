@@ -1,27 +1,30 @@
 import dotenv from "dotenv";
-import nodemailer from "nodemailer"
+import nodemailer from "nodemailer";
 
+dotenv.config();
 
-dotenv.config()
+const mailUser = process.env.BREVO_USER;
+const mailPass = process.env.BREVO_PASS;
 
-const mailUser = process.env.GMAIL_USER || process.env.MAILTRAP_USER
-const mailPass = process.env.GMAIL_PASS || process.env.MAILTRAP_PASS
-
-console.log("SMTP_USER:", mailUser)
-console.log("SMTP_PASS:", mailPass ? "OK" : "MISSING")
+console.log("SMTP_USER:", mailUser);
+console.log("SMTP_PASS:", mailPass ? "OK" : "MISSING");
 
 export const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "smtp-relay.brevo.com",
   port: 587,
   secure: false,
-  requireTLS: true,
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
   auth: {
     user: mailUser,
-    pass: mailPass
+    pass: mailPass,
   },
 });
 
-export const sender = `"Elbess" <${mailUser}>`;
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("SMTP transporter verification failed:", error.message);
+  } else {
+    console.log("SMTP transporter verified successfully");
+  }
+});
+
+export const sender = '"Elbess" <mehennimohamed095@gmail.com>';
