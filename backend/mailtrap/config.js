@@ -1,30 +1,28 @@
 import dotenv from "dotenv";
-import nodemailer from "nodemailer";
-
 dotenv.config();
 
-const mailUser = process.env.BREVO_USER;
-const mailPass = process.env.BREVO_PASS;
+export const sendEmail = async ({ to, subject, html, text }) => {
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": process.env.BREVO_API_KEY,
+    },
+    body: JSON.stringify({
+      sender: { name: "Elbess", email: "mehennimohamed095@gmail.com" },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+      textContent: text,
+    }),
+  });
 
-console.log("SMTP_USER:", mailUser);
-console.log("SMTP_PASS:", mailPass ? "OK" : "MISSING");
-
-export const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: mailUser,
-    pass: mailPass,
-  },
-});
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("SMTP transporter verification failed:", error.message);
-  } else {
-    console.log("SMTP transporter verified successfully");
+  if (!response.ok) {
+    const err = await response.json();
+    console.error("Brevo API error:", err);
+    throw new Error(err.message);
   }
-});
 
-export const sender = '"Elbess" <mehennimohamed095@gmail.com>';
+  console.log("Email sent successfully via Brevo API ✅");
+  return response.json();
+};
