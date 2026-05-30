@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config(); // ✅ Must be first
+dotenv.config();
 
 import express from "express";
 import cors from "cors";
@@ -8,7 +8,8 @@ import authRoute from "./routes/auth.js";
 import actionsRoute from "./routes/actions.js";
 import debugRoute from "./routes/debug.js";
 import fetchRoute from "./routes/fetch.js";
-import { transporter } from "./mailtrap/config.js";
+// ❌ احذف هذا السطر
+// import { transporter } from "./mailtrap/config.js";
 
 const app = express();
 
@@ -16,7 +17,7 @@ const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || "0.0.0.0";
 
 app.use(cors());
-app.use(express.json()); // ✅ Only this, no express.text()
+app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRoute);
 app.use("/api/actions", actionsRoute);
@@ -26,10 +27,7 @@ app.use("/api/debug", debugRoute);
 const startServer = async () => {
   try {
     await connectDB();
-    // Verify transporter connectivity (non-blocking log)
-    transporter.verify()
-      .then(() => console.log('SMTP transporter verified successfully'))
-      .catch((err) => console.log('SMTP transporter verification failed:', err.message || err));
+    console.log("Server started successfully ✅");
   } catch (error) {
     console.log(`Database connection failed: ${error.message}`);
   }
