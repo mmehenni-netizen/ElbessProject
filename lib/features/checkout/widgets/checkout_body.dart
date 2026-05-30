@@ -683,7 +683,7 @@ class _CheckoutBodyState extends State<CheckoutBody> {
   String _money(double value) => 'DZD ${value.toStringAsFixed(2)}';
 
   Map<String, dynamic>? _deliveryForWilaya(String wilaya) {
-    final w = wilaya.trim();
+    final w = wilaya.trim().split(',').first.trim();
     if (w.isEmpty) return null;
     try {
       return _deliveryWilayas.firstWhere((e) => (e['nameEn'] as String).toLowerCase() == w.toLowerCase());
@@ -766,7 +766,8 @@ class _CheckoutBodyState extends State<CheckoutBody> {
 
   @override
   Widget build(BuildContext context) {
-    final total = _subtotal;
+    // Include shipping fee in the total when available
+    final total = _subtotal + (_shippingFeeValue ?? 0);
     final visibleItems = _isLoading ? _placeholderItems : _items;
     final visibleTotal = _isLoading ? _placeholderTotal : total;
 
@@ -921,12 +922,12 @@ class _CheckoutBodyState extends State<CheckoutBody> {
                                   ),
                                   _SummaryRow(
                                     label: 'Subtotal',
-                                    value: _money(visibleTotal),
+                                    value: _money(_subtotal),
                                   ),
                                   const Gap(8),
-                                  const _SummaryRow(
+                                  _SummaryRow(
                                     label: 'Shipping Fee',
-                                    value: 'FREE',
+                                    value: _shippingFeeLabel,
                                   ),
                                   const Padding(
                                     padding: EdgeInsets.symmetric(vertical: 12),
@@ -934,7 +935,7 @@ class _CheckoutBodyState extends State<CheckoutBody> {
                                   ),
                                   _SummaryRow(
                                     label: 'Total Amount',
-                                    value: _money(visibleTotal + (_shippingFeeValue ?? 0)),
+                                    value: _money(visibleTotal),
                                     valueColor: AppColors.primary,
                                     isBold: true,
                                   ),

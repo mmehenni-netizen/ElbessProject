@@ -19,9 +19,10 @@ class _FillbodyState extends State<Fillbody> {
   final TextEditingController familyNameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController dateofbirthController = TextEditingController();
-  final TextEditingController adressController = TextEditingController();
+  final TextEditingController baldiyaController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
   bool _isLoading = false;
+  String? _selectedWilaya;
 
   // Algeria wilayas for autocomplete
   static const List<String> _algeriaWilayas = [
@@ -99,22 +100,26 @@ class _FillbodyState extends State<Fillbody> {
       final lastName = familyNameController.text.trim();
       final phone = phoneController.text.trim();
       final dateOfBirthText = dateofbirthController.text.trim();
-      final address = adressController.text.trim();
+      final baldiya = baldiyaController.text.trim();
+      final wilaya = _selectedWilaya?.trim() ?? '';
       final gender = genderController.text.trim();
 
       if (firstName.isEmpty ||
           lastName.isEmpty ||
           phone.isEmpty ||
           dateOfBirthText.isEmpty ||
-          address.isEmpty ||
+          wilaya.isEmpty ||
+          baldiya.isEmpty ||
           gender.isEmpty) {
         throw ApiError(message: 'All fields are required !');
       }
 
       // Ensure the address is one of the Algerian wilayas
-      if (!_algeriaWilayas.map((e) => e.toLowerCase()).contains(address.toLowerCase())) {
+      if (!_algeriaWilayas.map((e) => e.toLowerCase()).contains(wilaya.toLowerCase())) {
         throw ApiError(message: 'Please select a valid wilaya from the list');
       }
+
+      final address = '$wilaya, $baldiya';
 
       final dateOfBirth = DateTime.tryParse(dateOfBirthText);
       if (dateOfBirth == null) {
@@ -167,7 +172,7 @@ class _FillbodyState extends State<Fillbody> {
     familyNameController.dispose();
     phoneController.dispose();
     dateofbirthController.dispose();
-    adressController.dispose();
+    baldiyaController.dispose();
     genderController.dispose();
     super.dispose();
   }
@@ -248,7 +253,7 @@ class _FillbodyState extends State<Fillbody> {
               Gap(20),
               // Use a required Dropdown so user must pick one wilaya
               DropdownButtonFormField<String>(
-                value: _algeriaWilayas.contains(adressController.text) ? adressController.text : null,
+                value: _selectedWilaya,
                 decoration: InputDecoration(
                   hintText: 'Select your wilaya',
                   filled: true,
@@ -271,14 +276,17 @@ class _FillbodyState extends State<Fillbody> {
                     .map((w) => DropdownMenuItem<String>(value: w, child: Text(w)))
                     .toList(),
                 onChanged: (val) {
-                  adressController.text = val ?? '';
-                  setState(() {});
+                  setState(() {
+                    _selectedWilaya = val;
+                  });
                 },
                 validator: (val) {
                   if (val == null || val.isEmpty) return 'Please select your wilaya';
                   return null;
                 },
               ),
+              Gap(20),
+              FillTextField(hint: 'Baldiya', controller: baldiyaController),
               Gap(20),
               FillTextField(hint: "male/female", controller: genderController),
               const Gap(60),
