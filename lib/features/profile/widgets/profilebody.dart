@@ -1,4 +1,6 @@
 import 'package:elbess/core/constants/button.dart';
+import 'package:elbess/core/utils/pref_helpers.dart';
+import 'package:elbess/features/Options_view/Presentation/options_view.dart';
 import 'package:elbess/features/profile/data/profilerepo.dart';
 import 'package:elbess/features/profile/data/userprofile.dart';
 import 'package:elbess/features/profile/widgets/editprofile.dart';
@@ -28,6 +30,57 @@ class _ProfilebodyState extends State<Profilebody> {
     setState(() {
       _profileFuture = _profileRepo.getProfile();
     });
+  }
+
+  Future<void> _handleLogout() async {
+    final shouldLogout = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            return AlertDialog(
+              title: const Text('Log out?'),
+              content: const Text(
+                'This will sign you out of the app and return you to the login screen.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: const Text('Log out'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (!shouldLogout || !mounted) {
+      return;
+    }
+
+    try {
+      await PrefHelpers.clearAll();
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const OptionsView()),
+        (route) => false,
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logout failed: $error'),
+        ),
+      );
+    }
   }
 
   String _fullName(UserProfile profile) {
@@ -225,6 +278,29 @@ class _ProfilebodyState extends State<Profilebody> {
             }
             _refreshProfile();
           },
+        ),
+        const Gap(12),
+        GestureDetector(
+          onTap: _handleLogout,
+          child: Container(
+            height: 57,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF1F1),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: const Color(0xFFF1B5B5)),
+            ),
+            child: const Center(
+              child: Text(
+                'Log out',
+                style: TextStyle(
+                  color: Color(0xFFB42318),
+                  fontSize: 15,
+                  fontFamily: 'semi',
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );

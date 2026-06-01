@@ -37,7 +37,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
 
 		WidgetsBinding.instance.addPostFrameCallback((_) {
 			if (mounted) {
-				_focusNode.requestFocus();
+				_requestCodeFocus();
 			}
 		});
 	}
@@ -59,6 +59,14 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
 				timer.cancel();
 			}
 		});
+	}
+
+	void _requestCodeFocus() {
+		if (!mounted) {
+			return;
+		}
+
+		FocusScope.of(context).requestFocus(_focusNode);
 	}
 
 	Future<void> _verifyCode() async {
@@ -203,7 +211,8 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
 											),
 											const Gap(24),
 											GestureDetector(
-												onTap: () => _focusNode.requestFocus(),
+													behavior: HitTestBehavior.opaque,
+													onTap: _requestCodeFocus,
 												child: Row(
 													mainAxisAlignment: MainAxisAlignment.center,
 													children: List.generate(_codeLength, (index) {
@@ -238,15 +247,22 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
 											Opacity(
 												opacity: 0,
 												child: SizedBox(
-													height: 0,
-													width: 0,
+																height: 1,
+																width: 1,
 													child: TextField(
 														controller: _codeController,
 														focusNode: _focusNode,
 														keyboardType: TextInputType.number,
+																	textInputAction: TextInputAction.done,
 														onChanged: _onCodeChanged,
 														maxLength: _codeLength,
 														autofocus: true,
+																	showCursor: false,
+																	decoration: const InputDecoration(
+																		border: InputBorder.none,
+																		counterText: '',
+																		isCollapsed: true,
+																	),
 													),
 												),
 											),
